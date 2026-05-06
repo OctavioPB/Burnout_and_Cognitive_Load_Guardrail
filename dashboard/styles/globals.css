@@ -1,0 +1,119 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── OPB Brand Design System — CSS Variables ──────────────────────────────── */
+:root {
+  --primary:    #003366;
+  --primary-80: #1A4D80;
+  --primary-60: #336699;
+  --primary-30: #99BBDD;
+  --primary-10: #E0EAF4;
+  --gold:       #C8982A;
+  --gold-light: #E8C46A;
+  --dark:       #1C1C2E;
+  --mid:        #6B7280;
+  --light:      #F4F6F9;
+  --white:      #FFFFFF;
+
+  /* Font families */
+  --fd: 'Fraunces', Georgia, serif;
+  --fb: 'Plus Jakarta Sans', sans-serif;
+
+  /* Resilience zones */
+  --zone-green:       #27B97C;
+  --zone-green-bg:    #E0F7EF;
+  --zone-green-text:  #0D5C3A;
+  --zone-yellow:      #F07020;
+  --zone-yellow-bg:   #FEF0E6;
+  --zone-yellow-text: #7A3800;
+  --zone-red:         #E03448;
+  --zone-red-bg:      #FDEAEA;
+  --zone-red-text:    #7A1020;
+}
+
+/* ─── Base resets ───────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  background-color: var(--light);
+  font-family: var(--fb);
+  font-size: 15px;
+  color: var(--dark);
+  line-height: 1.7;
+}
+
+/* ─── Typography helpers ────────────────────────────────────────────────────── */
+.font-display { font-family: var(--fd); }
+.font-body    { font-family: var(--fb); }
+.font-mono    { font-family: 'Courier New', monospace; }
+
+/* ─── Eyebrow label pattern ─────────────────────────────────────────────────── */
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 9px;
+  font-family: var(--fb);
+  font-weight: 500;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 10px;
+}
+
+.eyebrow::before {
+  content: '';
+  display: block;
+  width: 24px;
+  height: 1px;
+  background: var(--gold);
+  flex-shrink: 0;
+}
+
+.eyebrow--light {
+  color: var(--gold-light);
+}
+
+.eyebrow--light::before {
+  background: var(--gold-light);
+}
+
+/* ─── Dark hero section ─────────────────────────────────────────────────────── */
+.hero-dark {
+  background-color: var(--primary);
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+/* ─── Card ──────────────────────────────────────────────────────────────────── */
+.card {
+  background: var(--white);
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0, 51, 102, 0.08);
+  padding: 28px;
+}
+
+/* ─── Gold accent bar ───────────────────────────────────────────────────────── */
+.accent-bar {
+  height: 3px;
+  background: var(--gold);
+  border-radius: 2px;
+}
+
+/* ─── Section divider ───────────────────────────────────────────────────────── */
+.section-divider {
+  height: 1px;
+  background: var(--primary-10);
+  border: none;
+}

@@ -1,0 +1,9 @@
+variable "project_name"            { type = string }
+variable "environment"             { type = string }
+variable "cluster_name"            { type = string }
+variable "vpc_id"                  { type = string }
+variable "private_subnets"         { type = list(string) }
+variable "kafka_version"           { type = string }
+variable "broker_instance_type"    { type = string }
+variable "number_of_broker_nodes"  { type = number }
+variable "broker_storage_volume_gb" { type = number }
