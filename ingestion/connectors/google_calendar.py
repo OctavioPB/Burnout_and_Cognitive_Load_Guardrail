@@ -177,6 +177,8 @@ class GoogleCalendarConnector(BaseConnector[CalendarActivityEvent]):
         work_start = datetime(date.year, date.month, date.day, _WORK_HOURS_START, tzinfo=timezone.utc)
         work_end = datetime(date.year, date.month, date.day, _WORK_HOURS_END, tzinfo=timezone.utc)
 
-        before = max(timedelta(0), work_start - s)
-        after = max(timedelta(0), e - work_end)
+        # Overlap before 09:00: from meeting start to min(meeting end, work start)
+        before = max(timedelta(0), min(e, work_start) - s)
+        # Overlap after 18:00: from max(meeting start, work end) to meeting end
+        after = max(timedelta(0), e - max(s, work_end))
         return int((before + after).total_seconds() // 60)

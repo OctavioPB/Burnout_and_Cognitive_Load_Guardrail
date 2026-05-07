@@ -17,9 +17,20 @@ UNTIL = datetime(2024, 1, 16, 0, 0, 0, tzinfo=timezone.utc)
 
 @pytest.fixture()
 def mock_producer() -> MagicMock:
-    """Stub confluent_kafka.Producer for producer unit tests."""
+    """Stub confluent_kafka.Producer for producer unit tests.
+
+    Simulates a successful synchronous delivery by invoking the callback
+    passed to produce() with (None, mock_msg), so _DeliveryResult.success
+    is set to True before flush() is checked.
+    """
     mock = MagicMock()
-    mock.flush.return_value = 0  # 0 = all messages delivered
+    mock.flush.return_value = 0
+
+    def _produce(topic: str, value: bytes = b"", callback: object = None, **_: object) -> None:
+        if callable(callback):
+            callback(None, MagicMock())  # err=None signals successful delivery
+
+    mock.produce.side_effect = _produce
     return mock
 
 
