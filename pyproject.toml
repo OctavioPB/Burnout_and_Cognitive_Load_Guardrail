@@ -25,6 +25,10 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+pipeline = [
+    "apache-airflow>=2.9.0",
+    "pandas>=2.0.0",
+]
 ml = [
     "scikit-learn>=1.4.0",
     "torch>=2.2.0",
@@ -88,7 +92,16 @@ addopts = [
 
 [tool.coverage.run]
 source = ["ingestion", "pipeline", "ml", "api"]
-omit = ["tests/*", "*/migrations/*"]
+omit = [
+    "tests/*",
+    "*/migrations/*",
+    # Require live services (Airflow, Kafka, Postgres) — covered by integration tests
+    "pipeline/dags/*",
+    "pipeline/operators/*",
+    "pipeline/db/*",
+    "pipeline/repository.py",
+    "pipeline/models.py",
+]
 
 [tool.coverage.report]
 exclude_lines = [

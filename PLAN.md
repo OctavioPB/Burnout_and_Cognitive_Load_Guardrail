@@ -78,15 +78,15 @@ Sprint 3: ETL Pipeline         Sprint 6: Inference API        Sprint 9: Hardenin
 **Dates:** Weeks 5–6
 
 #### Deliverables
-- [ ] Airflow DAG: `dag_raw_to_features` — triggered on Kafka offset checkpoints, runs hourly
-- [ ] Transform: **Calendar Density Score** — meetings per day normalized by team size
-- [ ] Transform: **After-Hours Activity Index** — weighted ratio of Slack events outside 9–6 local time
-- [ ] Transform: **Context-Switch Count** — number of distinct task/meeting context changes per day per team unit
-- [ ] Transform: **Sprint Health Index** — Jira/GitHub delivery ratio × PR cycle time
-- [ ] Aggregation: all transforms roll up to the `team_unit` grain, written to `features.team_daily` table
-- [ ] Data quality checks with Great Expectations (null rates, range checks, schema drift alerts)
-- [ ] Airflow DAG is idempotent — safe to backfill without duplicating records
-- [ ] `docs/` data dictionary for all feature columns
+- [x] Airflow DAG: `dag_raw_to_features` — triggered on Kafka offset checkpoints, runs hourly
+- [x] Transform: **Calendar Density Score** — meetings per day normalized by team size
+- [x] Transform: **After-Hours Activity Index** — weighted ratio of Slack events outside 9–6 local time
+- [x] Transform: **Context-Switch Count** — number of distinct task/meeting context changes per day per team unit
+- [x] Transform: **Sprint Health Index** — Jira/GitHub delivery ratio × PR cycle time
+- [x] Aggregation: all transforms roll up to the `team_unit` grain, written to `features.team_daily` table
+- [x] Data quality checks with Great Expectations (null rates, range checks, schema drift alerts)
+- [x] Airflow DAG is idempotent — safe to backfill without duplicating records
+- [x] `docs/` data dictionary for all feature columns
 
 #### Acceptance Criteria
 - `features.team_daily` table is populated with 30 days of backfilled data on staging
