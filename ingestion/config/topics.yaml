@@ -1,0 +1,70 @@
+# Kafka topic definitions for the ingestion layer.
+# Applied by scripts/init_kafka_topics.py on first deploy.
+#
+# Retention: raw topics = 7 days (ADR-003 data minimization rule)
+#            dlq topics  = 30 days (operational investigation window)
+
+topics:
+  # ── Raw ingestion topics ──────────────────────────────────────────────────
+  - name: raw.slack.activity
+    partitions: 6
+    replication_factor: 3
+    config:
+      retention.ms: "604800000"      # 7 days
+      cleanup.policy: delete
+      min.insync.replicas: "2"
+
+  - name: raw.calendar.events
+    partitions: 3
+    replication_factor: 3
+    config:
+      retention.ms: "604800000"
+      cleanup.policy: delete
+      min.insync.replicas: "2"
+
+  - name: raw.jira.sprint
+    partitions: 3
+    replication_factor: 3
+    config:
+      retention.ms: "604800000"
+      cleanup.policy: delete
+      min.insync.replicas: "2"
+
+  - name: raw.github.activity
+    partitions: 6
+    replication_factor: 3
+    config:
+      retention.ms: "604800000"
+      cleanup.policy: delete
+      min.insync.replicas: "2"
+
+  # ── Dead-letter queue topics ───────────────────────────────────────────────
+  # DLQ messages are JSON envelopes (not Avro) containing the original payload
+  # plus error context. Lower partition count — DLQ traffic is rare.
+  - name: dlq.slack.activity
+    partitions: 1
+    replication_factor: 3
+    config:
+      retention.ms: "2592000000"     # 30 days
+      cleanup.policy: delete
+
+  - name: dlq.calendar.events
+    partitions: 1
+    replication_factor: 3
+    config:
+      retention.ms: "2592000000"
+      cleanup.policy: delete
+
+  - name: dlq.jira.sprint
+    partitions: 1
+    replication_factor: 3
+    config:
+      retention.ms: "2592000000"
+      cleanup.policy: delete
+
+  - name: dlq.github.activity
+    partitions: 1
+    replication_factor: 3
+    config:
+      retention.ms: "2592000000"
+      cleanup.policy: delete

@@ -1,0 +1,17 @@
+{
+  "type": "record",
+  "name": "CalendarActivityEvent",
+  "namespace": "com.burnout_guardrail.ingestion",
+  "doc": "Team calendar load aggregated to a calendar day. Attendee names and meeting titles are never captured.",
+  "fields": [
+    {"name": "event_id",                    "type": "string", "doc": "UUID v4 — unique per event"},
+    {"name": "workspace_id",                "type": "string", "doc": "Google Workspace customer ID"},
+    {"name": "team_id",                     "type": "string", "doc": "Internal team unit identifier"},
+    {"name": "date_utc",                    "type": "string", "doc": "Calendar day in UTC (YYYY-MM-DD)"},
+    {"name": "meeting_count",               "type": "int",    "doc": "Total number of meetings on this date"},
+    {"name": "total_meeting_minutes",       "type": "int",    "doc": "Sum of all meeting durations in minutes"},
+    {"name": "back_to_back_count",          "type": "int",    "doc": "Number of adjacent meetings with < 5-minute gap"},
+    {"name": "after_hours_meeting_minutes", "type": "int",    "doc": "Minutes of meetings outside 09:00-18:00 local time"},
+    {"name": "ingested_at",                 "type": "string", "doc": "ISO 8601 timestamp when the event was produced"}
+  ]
+}

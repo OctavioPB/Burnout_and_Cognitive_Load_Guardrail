@@ -1,0 +1,17 @@
+{
+  "type": "record",
+  "name": "SlackActivityEvent",
+  "namespace": "com.burnout_guardrail.ingestion",
+  "doc": "Channel-level Slack message activity for a one-hour bucket. Contains no user identifiers or message content.",
+  "fields": [
+    {"name": "event_id",         "type": "string", "doc": "UUID v4 — unique per event"},
+    {"name": "workspace_id",     "type": "string", "doc": "Slack workspace ID (e.g. W012AB3CD)"},
+    {"name": "team_id",          "type": "string", "doc": "Internal team unit identifier"},
+    {"name": "channel_id",       "type": "string", "doc": "Slack channel ID — no channel name stored"},
+    {"name": "hour_bucket_utc",  "type": "string", "doc": "ISO 8601 hour boundary in UTC (e.g. 2024-01-15T14:00:00+00:00)"},
+    {"name": "message_count",    "type": "int",    "doc": "Number of messages in this channel during the hour"},
+    {"name": "is_after_hours",   "type": "boolean","doc": "True when hour_bucket_utc is before 09:00 or at/after 18:00 UTC"},
+    {"name": "day_of_week",      "type": "int",    "doc": "ISO weekday: 0=Monday, 6=Sunday"},
+    {"name": "ingested_at",      "type": "string", "doc": "ISO 8601 timestamp when the event was produced"}
+  ]
+}

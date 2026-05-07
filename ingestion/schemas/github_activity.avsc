@@ -1,0 +1,20 @@
+{
+  "type": "record",
+  "name": "GitHubActivityEvent",
+  "namespace": "com.burnout_guardrail.ingestion",
+  "doc": "PR cycle time and commit density aggregated to a calendar day. PR titles, commit messages, and author names are never captured. Repos are identified by numeric ID.",
+  "fields": [
+    {"name": "event_id",                    "type": "string", "doc": "UUID v4 — unique per event"},
+    {"name": "workspace_id",                "type": "string", "doc": "GitHub organization login"},
+    {"name": "team_id",                     "type": "string", "doc": "Internal team unit identifier"},
+    {"name": "date_utc",                    "type": "string", "doc": "Activity date in UTC (YYYY-MM-DD)"},
+    {"name": "repo_id",                     "type": "string", "doc": "GitHub numeric repo ID cast to string — name avoided to prevent org/project leakage"},
+    {"name": "pr_count_opened",             "type": "int",    "doc": "PRs opened on this date"},
+    {"name": "pr_count_merged",             "type": "int",    "doc": "PRs merged on this date"},
+    {"name": "avg_pr_cycle_time_hours",     "type": "double", "doc": "Mean (merged_at - created_at) in hours for merged PRs; -1.0 if no merged PRs"},
+    {"name": "avg_review_turnaround_hours", "type": "double", "doc": "Mean time from PR open to first review event in hours; -1.0 if no reviews"},
+    {"name": "commit_count_after_hours",    "type": "int",    "doc": "Commits with author_date outside 09:00-18:00 UTC"},
+    {"name": "total_commit_count",          "type": "int",    "doc": "Total commits pushed on this date"},
+    {"name": "ingested_at",                 "type": "string", "doc": "ISO 8601 timestamp when the event was produced"}
+  ]
+}

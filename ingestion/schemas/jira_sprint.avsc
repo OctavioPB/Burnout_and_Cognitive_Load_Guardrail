@@ -1,0 +1,19 @@
+{
+  "type": "record",
+  "name": "JiraSprintEvent",
+  "namespace": "com.burnout_guardrail.ingestion",
+  "doc": "Sprint commitment vs. delivery snapshot. Issue titles, descriptions, and assignees are never captured.",
+  "fields": [
+    {"name": "event_id",         "type": "string", "doc": "UUID v4 — unique per event"},
+    {"name": "workspace_id",     "type": "string", "doc": "Atlassian cloud ID"},
+    {"name": "team_id",          "type": "string", "doc": "Internal team unit identifier"},
+    {"name": "sprint_id",        "type": "string", "doc": "Jira sprint ID"},
+    {"name": "board_id",         "type": "string", "doc": "Jira board ID"},
+    {"name": "committed_points", "type": "int",    "doc": "Story points committed at sprint start"},
+    {"name": "completed_points", "type": "int",    "doc": "Story points in Done state at snapshot time"},
+    {"name": "delivery_ratio",   "type": "double", "doc": "completed / committed; 0.0 when committed == 0"},
+    {"name": "sprint_start_date","type": "string", "doc": "Sprint start date (YYYY-MM-DD)"},
+    {"name": "sprint_end_date",  "type": "string", "doc": "Sprint end date (YYYY-MM-DD)"},
+    {"name": "ingested_at",      "type": "string", "doc": "ISO 8601 timestamp when the event was produced"}
+  ]
+}

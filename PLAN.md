@@ -50,16 +50,16 @@ Sprint 3: ETL Pipeline         Sprint 6: Inference API        Sprint 9: Hardenin
 **Dates:** Weeks 3–4
 
 #### Deliverables
-- [ ] `BaseConnector` abstract interface defined in `ingestion/connectors/base.py`
-- [ ] **Slack connector** — captures: message timestamp, channel activity count, after-hours message flag (no message content)
-- [ ] **Google Calendar connector** — captures: meeting count per day, total meeting hours, back-to-back meeting flag
-- [ ] **Jira connector** — captures: ticket creation/closure rates, sprint commitment vs. delivery ratio
-- [ ] **GitHub connector** — captures: PR cycle time, review turnaround, commit frequency by hour
-- [ ] Avro schemas for all event types registered in Schema Registry
-- [ ] Kafka topics created: `raw.slack.activity`, `raw.calendar.events`, `raw.jira.sprint`, `raw.github.activity`
-- [ ] Kafka producer with retry logic, dead-letter queue (DLQ), and schema validation
-- [ ] Unit tests for each connector (mocked API responses)
-- [ ] Integration test: producer → Kafka → consumer round-trip
+- [x] `BaseConnector` abstract interface defined in `ingestion/connectors/base.py`
+- [x] **Slack connector** — captures: message timestamp, channel activity count, after-hours message flag (no message content)
+- [x] **Google Calendar connector** — captures: meeting count per day, total meeting hours, back-to-back meeting flag
+- [x] **Jira connector** — captures: ticket creation/closure rates, sprint commitment vs. delivery ratio
+- [x] **GitHub connector** — captures: PR cycle time, review turnaround, commit frequency by hour
+- [x] Avro schemas for all event types registered in Schema Registry
+- [x] Kafka topics created: `raw.slack.activity`, `raw.calendar.events`, `raw.jira.sprint`, `raw.github.activity`
+- [x] Kafka producer with retry logic, dead-letter queue (DLQ), and schema validation
+- [x] Unit tests for each connector (mocked API responses)
+- [x] Integration test: producer → Kafka → consumer round-trip
 
 #### Acceptance Criteria
 - All four connectors produce valid Avro messages consumed without schema errors
