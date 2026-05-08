@@ -107,14 +107,14 @@ Sprint 3: ETL Pipeline         Sprint 6: Inference API        Sprint 9: Hardenin
 **Dates:** Weeks 7–8
 
 #### Deliverables
-- [ ] Feature store schema finalized (`ml/training/features.py`)
-- [ ] Exploratory Data Analysis (EDA) notebook: distribution analysis, correlation heatmap, outlier inspection
-- [ ] **Attention Fragmentation Score (AFS)** composite feature engineered:
+- [x] Feature store schema finalized (`ml/training/features.py`)
+- [x] Exploratory Data Analysis (EDA) notebook: distribution analysis, correlation heatmap, outlier inspection
+- [x] **Attention Fragmentation Score (AFS)** composite feature engineered:
   - `AFS = f(context_switch_count, calendar_density, after_hours_index, sprint_health_inverse)`
-- [ ] Train/validation/test split logic with temporal holdout (no data leakage)
-- [ ] Synthetic data generator for local development and CI (`ml/training/synthetic.py`)
-- [ ] Feature pipeline unit tests with synthetic data
-- [ ] Baseline model (rule-based thresholds) for benchmarking ML model against
+- [x] Train/validation/test split logic with temporal holdout (no data leakage)
+- [x] Synthetic data generator for local development and CI (`ml/training/synthetic.py`)
+- [x] Feature pipeline unit tests with synthetic data
+- [x] Baseline model (rule-based thresholds) for benchmarking ML model against
 
 #### Acceptance Criteria
 - AFS values for the 30-day backfill land in the [0, 100] range with expected distribution
