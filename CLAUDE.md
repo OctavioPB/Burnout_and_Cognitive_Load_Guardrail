@@ -11,6 +11,7 @@
 
 **Core Promise:** Protect high-demand talent by detecting fatigue patterns weeks before attrition or medical leave occurs.
 
+The Burnout & Cognitive Load Guardrail is a smart early-warning system designed to keep high-performing teams from hitting a wall. Instead of waiting for someone to quit or get sick from stress, this tool uses real-time data to spot "red zone" behaviors—like constant late-night messages or back-to-back meetings—well before they lead to a crisis. By giving leadership a clear view of team health, the project helps prevent costly turnover and keeps the workforce energized. It’s a straightforward move to protect your best people and ensure the company stays productive without burning anyone out.
 ---
 
 ## Repository Structure
