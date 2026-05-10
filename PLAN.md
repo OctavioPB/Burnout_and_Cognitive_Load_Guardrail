@@ -132,14 +132,14 @@ Sprint 3: ETL Pipeline         Sprint 6: Inference API        Sprint 9: Hardenin
 **Dates:** Weeks 9–10
 
 #### Deliverables
-- [ ] **Isolation Forest** model trained on AFS composite feature + individual components
-- [ ] **LSTM sequence model** trained on 14-day rolling windows (detects trend deterioration, not just point anomalies)
-- [ ] Ensemble scorer: IF for point anomalies + LSTM for trend anomalies → final risk score
-- [ ] Resilience Zone classifier: risk score → Green / Yellow / Red label
-- [ ] Model evaluation report: precision, recall, F1, false positive rate on holdout set
-- [ ] Drift detection baseline (feature distribution fingerprint saved for monitoring)
-- [ ] Model artifacts versioned and stored in `ml/models/v1.0/`
-- [ ] `ml/evaluation/evaluate.py` script runs in CI on every PR to `ml/` folder
+- [x] **Isolation Forest** model trained on AFS composite feature + individual components
+- [x] **LSTM sequence model** trained on 14-day rolling windows (detects trend deterioration, not just point anomalies)
+- [x] Ensemble scorer: IF for point anomalies + LSTM for trend anomalies → final risk score
+- [x] Resilience Zone classifier: risk score → Green / Yellow / Red label
+- [x] Model evaluation report: precision, recall, F1, false positive rate on holdout set
+- [x] Drift detection baseline (feature distribution fingerprint saved for monitoring)
+- [x] Model artifacts versioned and stored in `ml/models/v1.0/`
+- [x] `ml/evaluation/evaluate.py` script runs in CI on every PR to `ml/` folder
 
 #### Acceptance Criteria
 - Red Zone precision ≥ 0.80 (fewer false alarms for HR)
