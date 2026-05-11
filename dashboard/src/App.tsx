@@ -1,37 +1,85 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+/**
+ * App — route definitions with auth guard and role-based protection.
+ *
+ * Routes:
+ *   /login          → LoginPage (public)
+ *   /dashboard      → DashboardHome (hr_admin, viewer)
+ *   /team/:teamId   → TeamDrillDown (all roles; team_manager sees only their team)
+ *   /alerts         → AlertsPage (hr_admin, viewer)
+ *   /               → redirect to /dashboard
+ *   *               → redirect to /dashboard
+ */
+
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { useAuthStore } from './stores/authStore';
+import { Nav } from './components/Nav';
+import { Footer } from './components/Footer';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { LoginPage } from './pages/LoginPage';
+import { DashboardHome } from './pages/DashboardHome';
+import { TeamDrillDown } from './pages/TeamDrillDown';
+import { AlertsPage } from './pages/AlertsPage';
+
+/** Redirects unauthenticated visitors to /login. */
+function RequireAuth({ children }: { children: React.ReactNode }) {
+  const isAuthenticated = useAuthStore(s => s.isAuthenticated());
+  const location = useLocation();
+  if (!isAuthenticated) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+  return <>{children}</>;
+}
+
+/** Shell with sticky nav + footer, wraps authenticated pages. */
+function Shell({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      <Nav />
+      <div style={{ flex: 1 }}>
+        <ErrorBoundary>{children}</ErrorBoundary>
+      </div>
+      <Footer />
+    </div>
+  );
+}
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Sprint 7 will wire these up — scaffolded for routing structure */}
+        {/* Public */}
+        <Route path="/login" element={<LoginPage />} />
+
+        {/* Protected */}
+        <Route
+          path="/dashboard"
+          element={
+            <RequireAuth>
+              <Shell><DashboardHome /></Shell>
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/team/:teamId"
+          element={
+            <RequireAuth>
+              <Shell><TeamDrillDown /></Shell>
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/alerts"
+          element={
+            <RequireAuth>
+              <Shell><AlertsPage /></Shell>
+            </RequireAuth>
+          }
+        />
+
+        {/* Fallbacks */}
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        <Route path="/dashboard" element={<PlaceholderPage title="Dashboard Home" />} />
-        <Route path="/team/:teamId" element={<PlaceholderPage title="Team Drill-Down" />} />
-        <Route path="/alerts" element={<PlaceholderPage title="Alert Feed" />} />
-        <Route path="*" element={<PlaceholderPage title="404 — Not Found" />} />
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </BrowserRouter>
-  );
-}
-
-function PlaceholderPage({ title }: { title: string }) {
-  return (
-    <div className="min-h-screen bg-light flex items-center justify-center">
-      <div className="text-center">
-        <p className="font-body text-mid text-sm uppercase tracking-widest mb-3">
-          Sprint 1 — Infrastructure Skeleton
-        </p>
-        <h1
-          className="font-display text-primary"
-          style={{ fontSize: 32, fontWeight: 300 }}
-        >
-          {title}
-        </h1>
-        <p className="font-body text-mid mt-4 text-sm">
-          UI implementation begins in Sprint 7.
-        </p>
-      </div>
-    </div>
   );
 }

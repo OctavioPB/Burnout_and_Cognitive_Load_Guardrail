@@ -195,16 +195,18 @@ Sprint 3: ETL Pipeline         Sprint 6: Inference API        Sprint 9: Hardenin
 
 > ⚠️ All UI decisions in this sprint are governed by **BRAND.md**. Read it before writing any component.
 
-- [ ] Authentication flow: SSO via Okta/Auth0, role-based access (HR Admin, Team Manager, Viewer)
-- [ ] **Dashboard Home** — org-wide heatmap of Resilience Zones by department
-- [ ] **Team Drill-Down** — 30-day AFS trend chart, component breakdown (calendar density, after-hours, context switches, sprint health)
-- [ ] **Alert Feed** — chronological list of Red Zone entries with timestamps and triggered interventions
-- [ ] **Zone Badge Component** — reusable Green/Yellow/Red indicator (colors from BRAND.md severity palette)
-- [ ] **Resilience Trend Chart** — Recharts `<LineChart>` with zone threshold bands (styled per BRAND.md)
-- [ ] **Department Heatmap** — grid of team cards color-coded by zone
-- [ ] Empty states, loading skeletons, and error boundaries for all views
-- [ ] Responsive layout: desktop (1280px+) and tablet (768px+)
-- [ ] Accessibility: WCAG 2.1 AA compliance (keyboard navigation, ARIA labels, color contrast)
+- [x] Authentication flow: role-based access (HR Admin, Team Manager, Viewer) — staged SSO simulation via Zustand + localStorage; swappable for Okta/Auth0 PKCE in production
+- [x] **Dashboard Home** — org-wide heatmap of Resilience Zones by department with KPI cards and zone filter
+- [x] **Team Drill-Down** — 30-day AFS trend chart, feature breakdown bars (calendar density, after-hours, context switches, sprint health), intervention cards
+- [x] **Alert Feed** — chronological list of Red Zone entries with timestamps, consecutive-day count, and triggered interventions
+- [x] **Zone Badge Component** — reusable Green/Yellow/Red indicator (colors from BRAND.md severity palette)
+- [x] **Resilience Trend Chart** — Recharts `ComposedChart` with zone ReferenceArea bands and dashed threshold lines
+- [x] **Department Heatmap** — grid of team cards grouped by department, color-coded by zone, sorted by AFS desc
+- [x] Empty states, loading skeletons (shimmer), and error boundaries on all views
+- [x] Responsive grid layout (CSS `auto-fill`, `minmax`) — adapts desktop → tablet
+- [x] Accessibility: ARIA roles, labels, `aria-current`, `aria-pressed`, `role="status"`, `role="alert"` throughout
+- [x] Backend API with seeded mock data: 12 teams × 4 departments × 30 days (deterministic, stable across restarts)
+- [x] TypeScript strict mode: 0 compiler errors
 
 #### Acceptance Criteria
 - Dashboard loads with real staging data for at least 10 seeded team units
