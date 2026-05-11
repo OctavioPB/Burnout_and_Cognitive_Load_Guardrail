@@ -1,38 +1,43 @@
 /**
- * React Query hooks for dashboard data.
+ * React Query hooks for all backend API endpoints.
  *
- * All hooks point at VITE_API_URL (defaults to http://localhost:8000).
- * Error objects are re-thrown so the nearest ErrorBoundary catches them.
+ * All requests go through apiClient which attaches auth headers automatically.
  */
 
-import { useQuery } from '@tanstack/react-query';
-import axios from 'axios';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { apiClient } from '../lib/apiClient';
 import type {
   AlertRecord,
   DashboardSummary,
   TeamCard,
   TeamHistory,
 } from '../types/domain';
+import type {
+  ApplyInterventionRequest,
+  AuditLogEntry,
+  DismissInterventionRequest,
+  EfficacyView,
+  InterventionRecord,
+} from '../types/interventions';
 
-const BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
-
-const api = axios.create({ baseURL: BASE });
-
-// ── Keys ──────────────────────────────────────────────────────────────────────
+// ── Query keys ────────────────────────────────────────────────────────────────
 
 export const queryKeys = {
-  summary:     ['dashboard', 'summary'] as const,
+  summary:     ['dashboard', 'summary']                         as const,
   teams:       (dept?: string) => ['dashboard', 'teams', dept ?? 'all'] as const,
   teamHistory: (teamId: string) => ['teams', teamId, 'history'] as const,
-  alerts:      (dept?: string) => ['alerts', dept ?? 'all'] as const,
+  alerts:      (dept?: string) => ['alerts', dept ?? 'all']     as const,
+  teamInterventions: (teamId: string) => ['interventions', teamId] as const,
+  efficacy:    (teamId: string, iid: string) => ['interventions', teamId, 'efficacy', iid] as const,
+  auditLog:    ['audit'] as const,
 };
 
-// ── Hooks ─────────────────────────────────────────────────────────────────────
+// ── Dashboard ─────────────────────────────────────────────────────────────────
 
 export function useDashboardSummary() {
   return useQuery<DashboardSummary>({
     queryKey: queryKeys.summary,
-    queryFn:  () => api.get<DashboardSummary>('/dashboard/summary').then(r => r.data),
+    queryFn:  () => apiClient.get<DashboardSummary>('/dashboard/summary').then(r => r.data),
     staleTime: 60_000,
   });
 }
@@ -41,7 +46,7 @@ export function useTeams(department?: string) {
   return useQuery<TeamCard[]>({
     queryKey: queryKeys.teams(department),
     queryFn:  () =>
-      api.get<TeamCard[]>('/dashboard/teams', {
+      apiClient.get<TeamCard[]>('/dashboard/teams', {
         params: department ? { department } : undefined,
       }).then(r => r.data),
     staleTime: 60_000,
@@ -51,10 +56,9 @@ export function useTeams(department?: string) {
 export function useTeamHistory(teamId: string) {
   return useQuery<TeamHistory>({
     queryKey: queryKeys.teamHistory(teamId),
-    queryFn:  () =>
-      api.get<TeamHistory>(`/teams/${teamId}/history`).then(r => r.data),
+    queryFn:  () => apiClient.get<TeamHistory>(`/teams/${teamId}/history`).then(r => r.data),
     staleTime: 60_000,
-    enabled: Boolean(teamId),
+    enabled:  Boolean(teamId),
   });
 }
 
@@ -62,9 +66,65 @@ export function useAlerts(department?: string) {
   return useQuery<AlertRecord[]>({
     queryKey: queryKeys.alerts(department),
     queryFn:  () =>
-      api.get<AlertRecord[]>('/alerts', {
+      apiClient.get<AlertRecord[]>('/alerts', {
         params: department ? { department } : undefined,
       }).then(r => r.data),
     staleTime: 60_000,
+  });
+}
+
+// ── Interventions ─────────────────────────────────────────────────────────────
+
+export function useTeamInterventions(teamId: string) {
+  return useQuery<InterventionRecord[]>({
+    queryKey: queryKeys.teamInterventions(teamId),
+    queryFn:  () =>
+      apiClient.get<InterventionRecord[]>(`/interventions/${teamId}`).then(r => r.data),
+    staleTime: 30_000,
+    enabled:  Boolean(teamId),
+  });
+}
+
+export function useApplyIntervention(teamId: string) {
+  const qc = useQueryClient();
+  return useMutation<InterventionRecord, Error, ApplyInterventionRequest>({
+    mutationFn: body =>
+      apiClient.post<InterventionRecord>(`/interventions/${teamId}/apply`, body).then(r => r.data),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: queryKeys.teamInterventions(teamId) });
+      void qc.invalidateQueries({ queryKey: queryKeys.teamHistory(teamId) });
+    },
+  });
+}
+
+export function useDismissIntervention(teamId: string) {
+  const qc = useQueryClient();
+  return useMutation<InterventionRecord, Error, DismissInterventionRequest>({
+    mutationFn: body =>
+      apiClient.post<InterventionRecord>(`/interventions/${teamId}/dismiss`, body).then(r => r.data),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: queryKeys.teamInterventions(teamId) });
+    },
+  });
+}
+
+export function useEfficacy(teamId: string, interventionId: string, enabled: boolean) {
+  return useQuery<EfficacyView>({
+    queryKey: queryKeys.efficacy(teamId, interventionId),
+    queryFn:  () =>
+      apiClient.get<EfficacyView>(`/interventions/${teamId}/efficacy/${interventionId}`).then(r => r.data),
+    staleTime: 120_000,
+    enabled:  enabled && Boolean(teamId) && Boolean(interventionId),
+  });
+}
+
+// ── Audit log ─────────────────────────────────────────────────────────────────
+
+export function useAuditLog(limit = 100) {
+  return useQuery<AuditLogEntry[]>({
+    queryKey: queryKeys.auditLog,
+    queryFn:  () =>
+      apiClient.get<AuditLogEntry[]>('/audit', { params: { limit } }).then(r => r.data),
+    staleTime: 30_000,
   });
 }

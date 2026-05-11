@@ -1,6 +1,6 @@
 """Backend API — Team Resilience Dashboard.
 
-Serves dashboard, team, and alert data to the React frontend.
+Serves dashboard, team, alert, intervention, and audit data to the React frontend.
 In staging this uses seeded mock data (api.services.mock_data).
 
 Ports:
@@ -9,6 +9,11 @@ Ports:
 
 CORS is configured for the Vite dev server (localhost:5173) and any
 staging origin listed in ALLOWED_ORIGINS.
+
+Auth contract (staging):
+  All authenticated requests send X-User-Id, X-User-Name, X-User-Role,
+  and optionally X-User-Team-Id headers.  In production these are derived
+  from a verified JWT issued by Okta/Auth0.
 """
 
 from __future__ import annotations
@@ -20,19 +25,26 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from api.routers import alerts, dashboard, teams
+from api.routers import alerts, audit, dashboard, interventions, teams
 
 logger = logging.getLogger(__name__)
 
 _ALLOWED_ORIGINS: list[str] = [
-    "http://localhost:5173",   # Vite dev
-    "http://localhost:4173",   # Vite preview
+    "http://localhost:5173",
+    "http://localhost:4173",
     *(os.getenv("ALLOWED_ORIGINS", "").split(",") if os.getenv("ALLOWED_ORIGINS") else []),
 ]
 
+# Read-path audit: map URL prefixes to audit action labels
+_READ_AUDIT: dict[str, str] = {
+    "/dashboard": "view_dashboard",
+    "/alerts":    "view_alerts",
+    "/audit":     "view_audit",
+}
+
 app = FastAPI(
     title="Burnout Guardrail — Backend API",
-    version="0.1.0",
+    version="0.2.0",
     description="Dashboard data API for the Team Resilience Dashboard.",
 )
 
@@ -46,14 +58,46 @@ app.add_middleware(
 
 
 @app.middleware("http")
-async def audit_log(request: Request, call_next):  # type: ignore[no-untyped-def]
-    """Log every request that reads resilience data with actor identity."""
+async def audit_middleware(request: Request, call_next):  # type: ignore[no-untyped-def]
+    """Record read events for data privacy compliance.
+
+    Only GET requests from authenticated actors are written to the audit log.
+    POST requests (intervention apply/dismiss) record their own audit entries
+    inside the router handler.
+    """
     response = await call_next(request)
-    actor = request.headers.get("X-User-Id", "anonymous")
-    logger.info(
-        "audit actor=%s method=%s path=%s status=%d",
-        actor, request.method, request.url.path, response.status_code,
-    )
+
+    if request.method == "GET" and response.status_code < 400:
+        actor_id   = request.headers.get("X-User-Id",   "anonymous")
+        actor_name = request.headers.get("X-User-Name",  "Anonymous")
+        actor_role = request.headers.get("X-User-Role",  "viewer")
+        path       = request.url.path
+
+        if actor_id != "anonymous":
+            from api.services.intervention_store import audit_store
+
+            # Determine action from path
+            action = "view_team" if path.startswith("/teams/") else None
+            for prefix, label in _READ_AUDIT.items():
+                if path.startswith(prefix):
+                    action = label
+                    break
+
+            if action:
+                resource = path.split("/")[2] if path.startswith("/teams/") else path.lstrip("/").split("/")[0]
+                audit_store.record(
+                    actor_id=actor_id,
+                    actor_name=actor_name,
+                    actor_role=actor_role,
+                    action=action,  # type: ignore[arg-type]
+                    resource=resource,
+                )
+
+        logger.info(
+            "audit actor=%s role=%s method=%s path=%s status=%d",
+            actor_id, actor_role, request.method, path, response.status_code,
+        )
+
     return response
 
 
@@ -71,3 +115,5 @@ async def _unhandled(request: Request, exc: Exception) -> JSONResponse:
 app.include_router(dashboard.router)
 app.include_router(teams.router)
 app.include_router(alerts.router)
+app.include_router(interventions.router)
+app.include_router(audit.router)

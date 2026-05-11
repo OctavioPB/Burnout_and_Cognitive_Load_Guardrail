@@ -6,6 +6,7 @@
  *   /dashboard      → DashboardHome (hr_admin, viewer)
  *   /team/:teamId   → TeamDrillDown (all roles; team_manager sees only their team)
  *   /alerts         → AlertsPage (hr_admin, viewer)
+ *   /audit          → AuditLogPage (hr_admin only)
  *   /               → redirect to /dashboard
  *   *               → redirect to /dashboard
  */
@@ -19,6 +20,7 @@ import { LoginPage } from './pages/LoginPage';
 import { DashboardHome } from './pages/DashboardHome';
 import { TeamDrillDown } from './pages/TeamDrillDown';
 import { AlertsPage } from './pages/AlertsPage';
+import { AuditLogPage } from './pages/AuditLogPage';
 
 /** Redirects unauthenticated visitors to /login. */
 function RequireAuth({ children }: { children: React.ReactNode }) {
@@ -72,6 +74,14 @@ export default function App() {
           element={
             <RequireAuth>
               <Shell><AlertsPage /></Shell>
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/audit"
+          element={
+            <RequireAuth>
+              <Shell><AuditLogPage /></Shell>
             </RequireAuth>
           }
         />

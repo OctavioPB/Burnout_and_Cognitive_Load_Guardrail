@@ -7,11 +7,12 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Eyebrow } from '../components/Eyebrow';
 import { ZoneBadge } from '../components/ZoneBadge';
 import { ResilienceTrendChart } from '../components/ResilienceTrendChart';
+import { InterventionPanel } from '../components/InterventionPanel';
 import { ChartSkeleton, Skeleton } from '../components/LoadingSkeleton';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { useTeamHistory } from '../hooks/useDashboard';
 import { useAuthStore } from '../stores/authStore';
-import type { FeatureScores, InterventionItem } from '../types/domain';
+import type { FeatureScores } from '../types/domain';
 
 const FEATURE_CONFIG: Array<{
   key: keyof FeatureScores;
@@ -42,26 +43,6 @@ function FeatureBar({ label, value, invert }: { label: string; value: number; in
   );
 }
 
-function InterventionCard({ item }: { item: InterventionItem }) {
-  return (
-    <div
-      style={{
-        backgroundColor: '#fff',
-        borderRadius: 10,
-        borderLeft: '3px solid var(--gold)',
-        padding: '14px 16px',
-        boxShadow: '0 1px 3px rgba(0,51,102,0.07)',
-      }}
-    >
-      <div style={{ fontFamily: 'var(--fb)', fontSize: 12, fontWeight: 700, color: 'var(--primary)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 4 }}>
-        {item.title}
-      </div>
-      <p style={{ fontFamily: 'var(--fb)', fontSize: 12.5, color: '#475569', lineHeight: 1.65, margin: 0 }}>
-        {item.description}
-      </p>
-    </div>
-  );
-}
 
 export function TeamDrillDown() {
   const { teamId } = useParams<{ teamId: string }>();
@@ -183,23 +164,13 @@ export function TeamDrillDown() {
                 </div>
 
                 {/* Interventions */}
-                {data.interventions.length > 0 && (
-                  <div>
-                    <Eyebrow>Suggested interventions</Eyebrow>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                      {data.interventions.map(i => (
-                        <InterventionCard key={i.id} item={i} />
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {data.interventions.length === 0 && (
-                  <div style={{ backgroundColor: '#E0F7EF', borderRadius: 10, padding: '16px', textAlign: 'center' }}>
-                    <div style={{ fontFamily: 'var(--fb)', fontSize: 12, color: '#0D5C3A', fontWeight: 600, marginBottom: 4 }}>No interventions required</div>
-                    <div style={{ fontFamily: 'var(--fb)', fontSize: 11, color: '#0D5C3A' }}>This team is in a healthy zone.</div>
-                  </div>
-                )}
+                <div>
+                  <Eyebrow>Interventions</Eyebrow>
+                  <InterventionPanel
+                    teamId={data.team_id}
+                    suggestedInterventions={data.interventions}
+                  />
+                </div>
               </div>
             </div>
           </>
