@@ -1,0 +1,153 @@
+groups:
+  # ── API health ───────────────────────────────────────────────────────────────
+  - name: api_health
+    rules:
+      - alert: APIHighErrorRate
+        expr: |
+          sum(rate(http_requests_total{status_code=~"5.."}[5m]))
+            /
+          sum(rate(http_requests_total[5m])) > 0.05
+        for: 2m
+        labels:
+          severity: critical
+          team: backend
+        annotations:
+          summary: "API error rate > 5%"
+          description: >
+            {{ $value | humanizePercentage }} of requests are returning 5xx.
+            Check application logs and backend service health.
+          runbook_url: "https://docs.internal/runbooks/api-high-error-rate"
+
+      - alert: APIHighLatencyP99
+        expr: |
+          histogram_quantile(0.99,
+            sum(rate(http_request_duration_seconds_bucket[5m])) by (le, path_template)
+          ) > 0.3
+        for: 5m
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: "API p99 latency > 300ms on {{ $labels.path_template }}"
+          description: >
+            p99 response time has exceeded the 300ms SLA for 5 minutes on
+            path {{ $labels.path_template }}.
+          runbook_url: "https://docs.internal/runbooks/api-high-latency"
+
+      - alert: APIDown
+        expr: up{job="burnout-api"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: backend
+        annotations:
+          summary: "Burnout API is unreachable"
+          description: >
+            Prometheus cannot scrape the /metrics endpoint on burnout-api.
+            The service may be crashed or restarting.
+          runbook_url: "https://docs.internal/runbooks/api-down"
+
+  # ── Kafka / ingestion ────────────────────────────────────────────────────────
+  - name: kafka_health
+    rules:
+      - alert: KafkaConsumerLagHigh
+        expr: |
+          kafka_consumer_group_lag{topic="digital-exhaust-events"} > 10000
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "Kafka consumer lag > 10k messages on {{ $labels.topic }}"
+          description: >
+            The ingestion consumer group {{ $labels.group }} is falling behind.
+            Current lag: {{ $value }} messages. Check consumer pod logs and
+            scaling policy.
+          runbook_url: "https://docs.internal/runbooks/kafka-consumer-lag"
+
+      - alert: KafkaConsumerLagCritical
+        expr: |
+          kafka_consumer_group_lag{topic="digital-exhaust-events"} > 50000
+        for: 5m
+        labels:
+          severity: critical
+          team: platform
+        annotations:
+          summary: "Kafka consumer lag CRITICAL (> 50k) on {{ $labels.topic }}"
+          description: >
+            Consumer lag has exceeded 50,000 messages — data freshness is
+            degraded.  SLA breach risk for real-time burnout scoring.
+            Escalate to on-call Platform Engineer immediately.
+          runbook_url: "https://docs.internal/runbooks/kafka-consumer-lag"
+
+  # ── ML model health ──────────────────────────────────────────────────────────
+  - name: ml_health
+    rules:
+      - alert: MLScoreDistributionDrift
+        expr: |
+          abs(
+            avg_over_time(ml_afs_score_mean[1h])
+              - avg_over_time(ml_afs_score_mean[24h] offset 24h)
+          ) > 10
+        for: 30m
+        labels:
+          severity: warning
+          team: ml
+          channel: slack-ml-alerts
+        annotations:
+          summary: "AFS score distribution drift detected"
+          description: >
+            The mean AFS score has shifted by > 10 points compared to the
+            same window 24 hours ago.  This may indicate data drift, feature
+            pipeline degradation, or a model serving issue.
+            Trigger a model evaluation run: make evaluate-model.
+          runbook_url: "https://docs.internal/runbooks/ml-drift"
+
+      - alert: MLInferenceServiceDown
+        expr: up{job="burnout-ml-inference"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          team: ml
+        annotations:
+          summary: "ML Inference service is unreachable"
+          description: >
+            Prometheus cannot scrape burnout-ml-inference.  Burnout scoring
+            is unavailable — dashboard AFS values are stale.
+          runbook_url: "https://docs.internal/runbooks/ml-inference-down"
+
+      - alert: MLHighAlertFireRate
+        expr: |
+          rate(ml_alert_fires_total[1h]) > 5
+        for: 10m
+        labels:
+          severity: warning
+          team: ml
+        annotations:
+          summary: "Unusually high Red Zone alert fire rate"
+          description: >
+            More than 5 Red Zone alerts per hour have fired for 10+ minutes.
+            This may indicate a data quality issue (runaway features) or a
+            genuine org-wide stress event.  Verify with HR stakeholders.
+          runbook_url: "https://docs.internal/runbooks/ml-high-alert-rate"
+
+  # ── Intervention workflow ────────────────────────────────────────────────────
+  - name: intervention_health
+    rules:
+      - alert: IntegrationFailureRateHigh
+        expr: |
+          sum(rate(intervention_actions_total{action="apply_failed"}[30m]))
+            /
+          sum(rate(intervention_actions_total{action=~"accepted|customized|apply_failed"}[30m]))
+          > 0.1
+        for: 10m
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: "Intervention integration failure rate > 10%"
+          description: >
+            More than 10% of intervention apply actions are failing to
+            dispatch their external integration (Calendar/Jira/Slack).
+            Check integration adapter logs for credential or API errors.
+          runbook_url: "https://docs.internal/runbooks/integration-failures"

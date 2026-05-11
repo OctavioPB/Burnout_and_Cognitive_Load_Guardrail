@@ -1,0 +1,189 @@
+{
+  "__inputs": [
+    { "name": "DS_PROMETHEUS", "label": "Prometheus", "type": "datasource", "pluginId": "prometheus" }
+  ],
+  "title": "Burnout Guardrail — Service Health",
+  "uid": "burnout-guardrail-v1",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "30s",
+  "time": { "from": "now-3h", "to": "now" },
+  "templating": {
+    "list": [
+      {
+        "name": "job",
+        "type": "query",
+        "query": "label_values(up, job)",
+        "current": { "text": "All", "value": "$__all" },
+        "multi": true,
+        "includeAll": true
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Request Rate (req/s)",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 0, "w": 8, "h": 8 },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "sum(rate(http_requests_total{job=~\"$job\"}[1m])) by (path_template)",
+          "legendFormat": "{{path_template}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "reqps", "color": { "mode": "palette-classic" } }
+      }
+    },
+    {
+      "id": 2,
+      "title": "Error Rate (%)",
+      "type": "timeseries",
+      "gridPos": { "x": 8, "y": 0, "w": 8, "h": 8 },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "100 * sum(rate(http_requests_total{status_code=~\"5..\",job=~\"$job\"}[1m])) / sum(rate(http_requests_total{job=~\"$job\"}[1m]))",
+          "legendFormat": "5xx %"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "percent", "thresholds": {
+          "steps": [
+            { "color": "green",  "value": null },
+            { "color": "yellow", "value": 1    },
+            { "color": "red",    "value": 5    }
+          ]
+        } }
+      }
+    },
+    {
+      "id": 3,
+      "title": "Latency — p50 / p95 / p99",
+      "type": "timeseries",
+      "gridPos": { "x": 16, "y": 0, "w": 8, "h": 8 },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket{job=~\"$job\"}[1m])) by (le))",
+          "legendFormat": "p50"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job=~\"$job\"}[1m])) by (le))",
+          "legendFormat": "p95"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket{job=~\"$job\"}[1m])) by (le))",
+          "legendFormat": "p99"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "s" }
+      }
+    },
+    {
+      "id": 4,
+      "title": "In-Flight Requests",
+      "type": "stat",
+      "gridPos": { "x": 0, "y": 8, "w": 4, "h": 4 },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "http_requests_in_flight",
+          "legendFormat": "in-flight"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "short", "thresholds": {
+          "steps": [
+            { "color": "green",  "value": null },
+            { "color": "yellow", "value": 50   },
+            { "color": "red",    "value": 200  }
+          ]
+        } }
+      }
+    },
+    {
+      "id": 5,
+      "title": "Intervention Actions / Hour",
+      "type": "timeseries",
+      "gridPos": { "x": 4, "y": 8, "w": 8, "h": 4 },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "sum(rate(intervention_actions_total[5m])) by (action) * 3600",
+          "legendFormat": "{{action}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "short" }
+      }
+    },
+    {
+      "id": 6,
+      "title": "Red-Zone Alert Fires / Hour",
+      "type": "stat",
+      "gridPos": { "x": 12, "y": 8, "w": 4, "h": 4 },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "rate(ml_alert_fires_total[1h]) * 3600",
+          "legendFormat": "fires/hr"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "short", "thresholds": {
+          "steps": [
+            { "color": "green",  "value": null },
+            { "color": "yellow", "value": 3    },
+            { "color": "red",    "value": 8    }
+          ]
+        } }
+      }
+    },
+    {
+      "id": 7,
+      "title": "Kafka Consumer Lag",
+      "type": "timeseries",
+      "gridPos": { "x": 16, "y": 8, "w": 8, "h": 4 },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "kafka_consumer_group_lag{topic=\"digital-exhaust-events\"}",
+          "legendFormat": "{{group}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "short", "thresholds": {
+          "steps": [
+            { "color": "green",  "value": null  },
+            { "color": "yellow", "value": 10000 },
+            { "color": "red",    "value": 50000 }
+          ]
+        } }
+      }
+    },
+    {
+      "id": 8,
+      "title": "Service Uptime",
+      "type": "table",
+      "gridPos": { "x": 0, "y": 12, "w": 24, "h": 6 },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "up",
+          "legendFormat": "{{job}} — {{instance}}",
+          "instant": true,
+          "format": "table"
+        }
+      ],
+      "transformations": [
+        { "id": "organize", "options": { "renameByName": { "Value": "Status", "job": "Service", "instance": "Instance" } } }
+      ]
+    }
+  ]
+}

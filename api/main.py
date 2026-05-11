@@ -25,9 +25,13 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from api.middleware.logging import CorrelationLoggingMiddleware, configure_structlog
+from api.middleware.metrics import PrometheusMiddleware, metrics_endpoint
+from api.middleware.security import SecurityHeadersMiddleware
 from api.routers import alerts, audit, dashboard, interventions, teams
 
 logger = logging.getLogger(__name__)
+configure_structlog()
 
 _ALLOWED_ORIGINS: list[str] = [
     "http://localhost:5173",
@@ -48,6 +52,9 @@ app = FastAPI(
     description="Dashboard data API for the Team Resilience Dashboard.",
 )
 
+app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(PrometheusMiddleware)
+app.add_middleware(CorrelationLoggingMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_ALLOWED_ORIGINS,
@@ -104,6 +111,12 @@ async def audit_middleware(request: Request, call_next):  # type: ignore[no-unty
 @app.get("/health", tags=["ops"])
 def health() -> dict:
     return {"status": "ok", "version": app.version}
+
+
+@app.get("/metrics", tags=["ops"], include_in_schema=False)
+def get_metrics():  # type: ignore[no-untyped-def]
+    """Prometheus metrics scrape endpoint (cluster-internal only)."""
+    return metrics_endpoint()
 
 
 @app.exception_handler(Exception)
