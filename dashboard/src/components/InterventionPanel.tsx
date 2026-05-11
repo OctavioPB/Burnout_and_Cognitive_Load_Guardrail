@@ -18,7 +18,6 @@ import {
 import { useAuthStore } from '../stores/authStore';
 import { EfficacyChart } from './EfficacyChart';
 import { Skeleton } from './LoadingSkeleton';
-import { ZoneBadge } from './ZoneBadge';
 
 // ── Integration label ─────────────────────────────────────────────────────────
 

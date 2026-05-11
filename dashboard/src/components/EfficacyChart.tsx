@@ -98,10 +98,10 @@ export function EfficacyChart({ data, height = 240 }: EfficacyChartProps) {
           <ReferenceArea y1={70} y2={100} fill="#FDEAEA" fillOpacity={0.4} />
 
           {/* Before shading */}
-          {appliedIdx > 0 && (
+          {appliedIdx > 0 && entries[0] && entries[appliedIdx] && (
             <ReferenceArea
-              x1={entries[0]?.displayDate}
-              x2={entries[appliedIdx]?.displayDate}
+              x1={entries[0].displayDate}
+              x2={entries[appliedIdx].displayDate}
               fill="rgba(107,114,128,0.06)"
             />
           )}
