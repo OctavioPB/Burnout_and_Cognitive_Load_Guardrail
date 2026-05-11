@@ -61,6 +61,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         for header, value in self._HEADERS.items():
             response.headers[header] = value
         # Remove headers that leak server implementation details
-        response.headers.pop("Server", None)
-        response.headers.pop("X-Powered-By", None)
+        for leaky in ("Server", "X-Powered-By"):
+            if leaky in response.headers:
+                del response.headers[leaky]
         return response
