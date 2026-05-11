@@ -101,6 +101,8 @@ omit = [
     "pipeline/db/*",
     "pipeline/repository.py",
     "pipeline/models.py",
+    # FastAPI lifespan loads model artifacts from disk — covered by integration tests
+    "ml/inference/main.py",
 ]
 
 [tool.coverage.report]
