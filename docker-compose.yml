@@ -25,7 +25,6 @@ services:
         condition: service_healthy
     ports:
       - "9092:9092"
-      - "9101:9101"
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
@@ -37,12 +36,15 @@ services:
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       KAFKA_JMX_PORT: 9101
       KAFKA_JMX_HOSTNAME: localhost
+      # Allow Kafka time to see ZooKeeper expire the stale broker node (~18s session timeout)
+      KAFKA_ZOOKEEPER_SESSION_TIMEOUT_MS: 18000
+    restart: on-failure
     healthcheck:
-      test: ["CMD", "bash", "-c", "kafka-topics --bootstrap-server localhost:9092 --list"]
-      start_period: 30s
-      interval: 15s
+      test: ["CMD", "bash", "-c", "kafka-broker-api-versions --bootstrap-server localhost:9092 > /dev/null 2>&1"]
+      start_period: 60s
+      interval: 10s
       timeout: 10s
-      retries: 10
+      retries: 15
 
   schema-registry:
     image: confluentinc/cp-schema-registry:7.6.0

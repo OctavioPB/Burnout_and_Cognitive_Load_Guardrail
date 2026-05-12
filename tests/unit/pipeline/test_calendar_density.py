@@ -8,7 +8,6 @@ from pipeline.transforms.calendar_density import (
 )
 from tests.unit.pipeline.conftest import make_calendar
 
-
 # ── Edge cases ────────────────────────────────────────────────────────────────
 
 

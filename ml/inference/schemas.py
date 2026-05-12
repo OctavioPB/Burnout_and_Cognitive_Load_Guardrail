@@ -6,7 +6,6 @@ from typing import Annotated
 
 from pydantic import BaseModel, Field, model_validator
 
-
 # ── Request ───────────────────────────────────────────────────────────────────
 
 
@@ -40,7 +39,7 @@ class PredictRequest(BaseModel):
     history: list[DayFeatures] | None = Field(default=None, max_length=13)
 
     @model_validator(mode="after")
-    def validate_history_order(self) -> "PredictRequest":
+    def validate_history_order(self) -> PredictRequest:
         """Silently accepted — history ordering responsibility is on the caller."""
         return self
 

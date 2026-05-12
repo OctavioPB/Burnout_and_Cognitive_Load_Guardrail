@@ -8,11 +8,10 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from ml.training.baseline import RuleBasedBaseline, _GREEN_THRESHOLDS, _RED_THRESHOLDS
+from ml.training.baseline import _GREEN_THRESHOLDS, _RED_THRESHOLDS, RuleBasedBaseline
+from ml.training.dataset import temporal_split
 from ml.training.features import RAW_FEATURE_COLS, ResilienceZone
 from ml.training.synthetic import SyntheticDataGenerator
-from ml.training.dataset import temporal_split
-
 
 # ── predict_one — zone boundaries ─────────────────────────────────────────────
 

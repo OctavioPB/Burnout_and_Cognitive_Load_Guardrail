@@ -20,8 +20,9 @@ from __future__ import annotations
 
 import logging
 import time
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import Any, AsyncGenerator
+from typing import Any
 
 from fastapi import FastAPI, Header, Request, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -246,7 +247,7 @@ async def predict_batch(
             if alert is not None:
                 await _dispatch_alert(alert)
 
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.error("Batch item team=%s failed: %s", item.team_id, exc)
 
     return BatchPredictResponse(

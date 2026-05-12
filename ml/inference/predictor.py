@@ -17,7 +17,7 @@ calls.  Alert tracking (consecutive Red days) is handled separately in
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 import numpy as np
 
@@ -99,7 +99,7 @@ class BurnoutPredictor:
         ):
             # Build (1, window_size, n_features) sequence tensor
             context_days = history[-(LSTM_WINDOW_SIZE - 1):]  # last 13 history days
-            all_days = context_days + [current_features]      # + today = 14 days
+            all_days = [*context_days, current_features]       # + today = 14 days
             X_seq = np.array(
                 [[_features_to_row(d) for d in all_days]],
                 dtype=np.float32,

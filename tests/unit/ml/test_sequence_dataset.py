@@ -5,7 +5,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from ml.training.features import RAW_FEATURE_COLS, ZONE_COL
+from ml.training.features import RAW_FEATURE_COLS
 from ml.training.sequence_dataset import (
     DEFAULT_WINDOW_SIZE,
     SequenceDataset,
@@ -118,7 +118,7 @@ def test_window_size_zero_raises() -> None:
 
 def test_window_larger_than_days_raises() -> None:
     df = SyntheticDataGenerator(seed=0).generate_dataframe(n_teams=3, n_days=5)
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="window_size"):
         build_sequences(df, window_size=10)
 
 

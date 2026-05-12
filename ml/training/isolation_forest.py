@@ -66,7 +66,7 @@ class BurnoutIsolationForest:
 
     # ── Fit ───────────────────────────────────────────────────────────────────
 
-    def fit(self, X: np.ndarray) -> "BurnoutIsolationForest":
+    def fit(self, X: np.ndarray) -> BurnoutIsolationForest:
         """Train the forest and fit the anomaly score scaler.
 
         Args:
@@ -100,8 +100,8 @@ class BurnoutIsolationForest:
             Float32 array of shape (n_samples,).
         """
         self._check_fitted()
-        raw = self._if.decision_function(X)
-        scaled = self._scaler.transform((-raw).reshape(-1, 1)).ravel()
+        raw: np.ndarray = self._if.decision_function(X)
+        scaled: np.ndarray = self._scaler.transform((-raw).reshape(-1, 1)).ravel()
         return np.clip(scaled, 0.0, 1.0).astype(np.float32)
 
     def predict_proba(self, X: np.ndarray) -> np.ndarray:
@@ -120,7 +120,7 @@ class BurnoutIsolationForest:
 
         raw = np.stack([p_green, p_yellow, p_red], axis=1).astype(np.float64)
         row_sums = raw.sum(axis=1, keepdims=True)
-        return (raw / row_sums).astype(np.float32)
+        return (raw / row_sums).astype(np.float32)  # type: ignore[no-any-return]
 
     def predict(self, X: np.ndarray) -> np.ndarray:
         """Return integer class predictions (0=green, 1=yellow, 2=red).
@@ -131,7 +131,7 @@ class BurnoutIsolationForest:
         Returns:
             Int32 array of shape (n_samples,).
         """
-        return self.predict_proba(X).argmax(axis=1).astype(np.int32)
+        return self.predict_proba(X).argmax(axis=1).astype(np.int32)  # type: ignore[no-any-return]
 
     # ── Serialization ─────────────────────────────────────────────────────────
 
@@ -147,7 +147,7 @@ class BurnoutIsolationForest:
         logger.info("IsolationForest saved to %s", path)
 
     @classmethod
-    def load(cls, path: Path) -> "BurnoutIsolationForest":
+    def load(cls, path: Path) -> BurnoutIsolationForest:
         """Load a previously saved BurnoutIsolationForest.
 
         Args:

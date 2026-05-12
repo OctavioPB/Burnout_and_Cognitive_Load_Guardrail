@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +57,7 @@ class QualityCheckResult:
 # ── Check implementations ─────────────────────────────────────────────────────
 
 
-def _check_non_empty(records: list[dict]) -> QualityCheckResult:
+def _check_non_empty(records: list[dict[str, Any]]) -> QualityCheckResult:
     passed = len(records) > 0
     return QualityCheckResult(
         check_name="non_empty_batch",
@@ -65,7 +66,7 @@ def _check_non_empty(records: list[dict]) -> QualityCheckResult:
     )
 
 
-def _check_null_rate(records: list[dict], column: str) -> QualityCheckResult:
+def _check_null_rate(records: list[dict[str, Any]], column: str) -> QualityCheckResult:
     total = len(records)
     null_count = sum(1 for r in records if r.get(column) is None)
     rate = null_count / total if total > 0 else 0.0
@@ -81,7 +82,7 @@ def _check_null_rate(records: list[dict], column: str) -> QualityCheckResult:
     )
 
 
-def _check_range(records: list[dict], column: str) -> QualityCheckResult:
+def _check_range(records: list[dict[str, Any]], column: str) -> QualityCheckResult:
     values = [r[column] for r in records if r.get(column) is not None]
     if not values:
         return QualityCheckResult(
@@ -104,7 +105,7 @@ def _check_range(records: list[dict], column: str) -> QualityCheckResult:
     )
 
 
-def _check_schema_drift(records: list[dict]) -> QualityCheckResult:
+def _check_schema_drift(records: list[dict[str, Any]]) -> QualityCheckResult:
     if not records:
         return QualityCheckResult(
             check_name="schema_drift",
@@ -128,7 +129,7 @@ def _check_schema_drift(records: list[dict]) -> QualityCheckResult:
 # ── Public entry point ────────────────────────────────────────────────────────
 
 
-def validate_team_daily_batch(records: list[dict]) -> list[QualityCheckResult]:
+def validate_team_daily_batch(records: list[dict[str, Any]]) -> list[QualityCheckResult]:
     """Run all quality checks on a batch of feature dicts.
 
     Args:

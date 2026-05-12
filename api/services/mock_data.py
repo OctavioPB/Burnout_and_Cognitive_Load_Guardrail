@@ -19,13 +19,16 @@ from api.schemas.dashboard import (
     DeptSummary,
     FeatureScores,
     InterventionItem,
+    OrgHistory,
+    OrgTrendPoint,
     TeamCard,
     TeamHistory,
+    TeamTrendSeries,
 )
 
 # ── Team registry ─────────────────────────────────────────────────────────────
 
-_TEAMS: list[dict] = [
+_TEAMS: list[dict[str, str]] = [
     {"team_id": "T-01", "team_name": "Frontend Engineering", "department": "Engineering"},
     {"team_id": "T-02", "team_name": "Backend Engineering",  "department": "Engineering"},
     {"team_id": "T-03", "team_name": "Infrastructure",       "department": "Engineering"},
@@ -117,7 +120,7 @@ def _latest_features(history: list[DayPoint]) -> FeatureScores:
 _INTERVENTION_RULES: list[tuple[str, str, str, float, str]] = [
     ("calendar_density_score",      "ge", "meeting_free_friday",  0.65, "Meeting-Free Friday"),
     ("after_hours_activity_index",  "ge", "async_first_week",     0.60, "Async-First Week"),
-    ("sprint_health_index",         "le", "load_redistribution",  0.50, "Load Redistribution Review"),
+    ("sprint_health_index",         "le", "load_redistribution",  0.50, "Load Redistribution"),
     ("context_switch_count",        "ge", "focus_blocks",         0.60, "Deep Work Blocks"),
 ]
 
@@ -138,7 +141,9 @@ def _suggest(features: FeatureScores) -> list[InterventionItem]:
             continue
         triggered = (op == "ge" and val >= thresh) or (op == "le" and val <= thresh)
         if triggered:
-            result.append(InterventionItem(id=iid, title=title, description=_INTERVENTION_DESC[iid]))
+            result.append(
+                InterventionItem(id=iid, title=title, description=_INTERVENTION_DESC[iid])
+            )
     return result
 
 
@@ -148,7 +153,7 @@ def _build_alerts(team_id: str, team_name: str, department: str,
                   history: list[DayPoint]) -> list[AlertRecord]:
     alerts: list[AlertRecord] = []
     streak = 0
-    for i, pt in enumerate(history):
+    for _, pt in enumerate(history):
         if pt.zone == "red":
             streak += 1
             if streak >= 3:
@@ -209,12 +214,15 @@ class _DataStore:
     # ── Accessors ──────────────────────────────────────────────────────────────
 
     def summary(self) -> DashboardSummary:
-        by_dept: dict[str, dict] = {}
+        by_dept: dict[str, dict[str, int]] = {}
         green = yellow = red = 0
         for card in self._team_cards:
-            if card.zone == "green":   green += 1
-            elif card.zone == "yellow": yellow += 1
-            else:                       red += 1
+            if card.zone == "green":
+                green += 1
+            elif card.zone == "yellow":
+                yellow += 1
+            else:
+                red += 1
             d = by_dept.setdefault(card.department, {"green": 0, "yellow": 0, "red": 0, "total": 0})
             d[card.zone] += 1
             d["total"] += 1
@@ -257,6 +265,45 @@ class _DataStore:
             history=history,
             interventions=_suggest(feats),
         )
+
+    def org_history(self) -> OrgHistory:
+        """Return 30-day AFS time series aggregated at org, dept, and team levels."""
+        sample = next(iter(self._histories.values()))
+        dates = [pt.date for pt in sample]
+
+        date_org: dict[str, list[float]] = {d: [] for d in dates}
+        date_dept: dict[str, dict[str, list[float]]] = {}
+        for t in _TEAMS:
+            tid, dept = t["team_id"], t["department"]
+            if dept not in date_dept:
+                date_dept[dept] = {d: [] for d in dates}
+            for pt in self._histories[tid]:
+                date_org[pt.date].append(pt.afs)
+                date_dept[dept][pt.date].append(pt.afs)
+
+        org = [
+            OrgTrendPoint(date=d, afs=round(sum(vals) / len(vals), 1))
+            for d, vals in sorted(date_org.items()) if vals
+        ]
+        by_department: dict[str, list[OrgTrendPoint]] = {
+            dept: [
+                OrgTrendPoint(date=d, afs=round(sum(vals) / len(vals), 1))
+                for d, vals in sorted(day_vals.items()) if vals
+            ]
+            for dept, day_vals in date_dept.items()
+        }
+        by_team: dict[str, TeamTrendSeries] = {
+            t["team_id"]: TeamTrendSeries(
+                name=t["team_name"],
+                department=t["department"],
+                history=[
+                    OrgTrendPoint(date=pt.date, afs=pt.afs)
+                    for pt in self._histories[t["team_id"]]
+                ],
+            )
+            for t in _TEAMS
+        }
+        return OrgHistory(org=org, by_department=by_department, by_team=by_team)
 
     def alerts(self, department: str | None = None, limit: int = 50) -> list[AlertRecord]:
         result = self._alerts

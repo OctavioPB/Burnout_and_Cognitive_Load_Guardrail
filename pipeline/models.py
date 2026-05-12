@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import uuid
 from datetime import date, datetime
-from typing import Optional
 
 from sqlalchemy import Date, DateTime, Float, Integer, String, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
@@ -39,15 +38,15 @@ class TeamDailyFeature(Base):
     date_utc: Mapped[date] = mapped_column(Date, nullable=False)
 
     # ── Feature columns ──────────────────────────────────────────────────────
-    calendar_density_score: Mapped[Optional[float]] = mapped_column(Float)
-    after_hours_activity_index: Mapped[Optional[float]] = mapped_column(Float)
-    context_switch_count: Mapped[Optional[float]] = mapped_column(Float)
-    sprint_health_index: Mapped[Optional[float]] = mapped_column(Float)
-    team_size: Mapped[Optional[int]] = mapped_column(Integer)
+    calendar_density_score: Mapped[float | None] = mapped_column(Float)
+    after_hours_activity_index: Mapped[float | None] = mapped_column(Float)
+    context_switch_count: Mapped[float | None] = mapped_column(Float)
+    sprint_health_index: Mapped[float | None] = mapped_column(Float)
+    team_size: Mapped[int | None] = mapped_column(Integer)
 
     # ── Lineage — last Kafka offset consumed per source topic ────────────────
     computed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-    kafka_slack_offset: Mapped[Optional[int]] = mapped_column(Integer)
-    kafka_calendar_offset: Mapped[Optional[int]] = mapped_column(Integer)
-    kafka_jira_offset: Mapped[Optional[int]] = mapped_column(Integer)
-    kafka_github_offset: Mapped[Optional[int]] = mapped_column(Integer)
+    kafka_slack_offset: Mapped[int | None] = mapped_column(Integer)
+    kafka_calendar_offset: Mapped[int | None] = mapped_column(Integer)
+    kafka_jira_offset: Mapped[int | None] = mapped_column(Integer)
+    kafka_github_offset: Mapped[int | None] = mapped_column(Integer)

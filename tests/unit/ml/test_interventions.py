@@ -2,10 +2,7 @@
 
 from __future__ import annotations
 
-import pytest
-
 from ml.inference.interventions import Intervention, suggest_interventions
-
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 

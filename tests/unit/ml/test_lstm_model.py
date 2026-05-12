@@ -8,11 +8,10 @@ import numpy as np
 import pytest
 import torch
 
-from ml.training.lstm_model import BurnoutLSTM, LSTMTrainer, TrainResult
-from ml.training.synthetic import SyntheticDataGenerator
-from ml.training.sequence_dataset import build_sequences, split_sequence_dataset
 from ml.training.dataset import temporal_split
-
+from ml.training.lstm_model import BurnoutLSTM, LSTMTrainer, TrainResult
+from ml.training.sequence_dataset import build_sequences, split_sequence_dataset
+from ml.training.synthetic import SyntheticDataGenerator
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 

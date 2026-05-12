@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import httpx
@@ -130,7 +130,7 @@ class GoogleCalendarConnector(BaseConnector[CalendarActivityEvent]):
         # Group meetings by calendar date (UTC)
         by_date: dict[str, list[tuple[datetime, datetime]]] = {}
         for start, end in meetings:
-            date_key = start.astimezone(timezone.utc).strftime("%Y-%m-%d")
+            date_key = start.astimezone(UTC).strftime("%Y-%m-%d")
             by_date.setdefault(date_key, []).append((start, end))
 
         events: list[CalendarActivityEvent] = []
@@ -171,11 +171,11 @@ class GoogleCalendarConnector(BaseConnector[CalendarActivityEvent]):
     @staticmethod
     def _after_hours_overlap_minutes(start: datetime, end: datetime) -> int:
         """Count minutes of a meeting that fall outside 09:00-18:00 UTC."""
-        s = start.astimezone(timezone.utc)
-        e = end.astimezone(timezone.utc)
+        s = start.astimezone(UTC)
+        e = end.astimezone(UTC)
         date = s.date()
-        work_start = datetime(date.year, date.month, date.day, _WORK_HOURS_START, tzinfo=timezone.utc)
-        work_end = datetime(date.year, date.month, date.day, _WORK_HOURS_END, tzinfo=timezone.utc)
+        work_start = datetime(date.year, date.month, date.day, _WORK_HOURS_START, tzinfo=UTC)
+        work_end = datetime(date.year, date.month, date.day, _WORK_HOURS_END, tzinfo=UTC)
 
         # Overlap before 09:00: from meeting start to min(meeting end, work start)
         before = max(timedelta(0), min(e, work_start) - s)

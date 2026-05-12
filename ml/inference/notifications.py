@@ -24,6 +24,7 @@ import asyncio
 import logging
 import os
 from dataclasses import dataclass
+from typing import Any
 
 import httpx
 
@@ -38,7 +39,7 @@ _RETRY_BASE_DELAY: float = 0.5  # seconds; doubles on each retry
 # ── Payload builders ──────────────────────────────────────────────────────────
 
 
-def _build_slack_payload(alert: Alert) -> dict:
+def _build_slack_payload(alert: Alert) -> dict[str, Any]:
     intervention_lines = "\n".join(
         f"• *{i.title}*: {i.description}" for i in alert.interventions
     ) or "No specific interventions triggered."
@@ -53,7 +54,7 @@ def _build_slack_payload(alert: Alert) -> dict:
     }
 
 
-def _build_sendgrid_payload(alert: Alert, from_email: str, to_email: str) -> dict:
+def _build_sendgrid_payload(alert: Alert, from_email: str, to_email: str) -> dict[str, Any]:
     intervention_html = "".join(
         f"<li><strong>{i.title}</strong>: {i.description}</li>"
         for i in alert.interventions
@@ -62,7 +63,9 @@ def _build_sendgrid_payload(alert: Alert, from_email: str, to_email: str) -> dic
     return {
         "personalizations": [{"to": [{"email": to_email}]}],
         "from": {"email": from_email},
-        "subject": f"Burnout Alert: Team {alert.team_id} — {alert.consecutive_red_days} Red Zone Days",
+        "subject": (
+            f"Burnout Alert: Team {alert.team_id} - {alert.consecutive_red_days} Red Zone Days"
+        ),
         "content": [
             {
                 "type": "text/html",
@@ -71,8 +74,8 @@ def _build_sendgrid_payload(alert: Alert, from_email: str, to_email: str) -> dic
                     f"for <strong>{alert.consecutive_red_days} consecutive days</strong> "
                     f"(last recorded: {alert.trigger_date}).</p>"
                     f"<h3>Suggested Interventions</h3><ul>{intervention_html}</ul>"
-                    f"<hr><p style='color:#888;font-size:11px;'>Burnout &amp; Cognitive Load Guardrail — "
-                    "automated alert. Do not reply to this email.</p>"
+                    "<hr><p style='color:#888;font-size:11px;'>"
+                    "Burnout &amp; Cognitive Load Guardrail - automated alert. Do not reply.</p>"
                 ),
             }
         ],
@@ -85,8 +88,8 @@ def _build_sendgrid_payload(alert: Alert, from_email: str, to_email: str) -> dic
 async def _post_with_retry(
     client: httpx.AsyncClient,
     url: str,
-    json: dict,
-    headers: dict | None = None,
+    json: dict[str, Any],
+    headers: dict[str, str] | None = None,
     *,
     description: str = "HTTP POST",
 ) -> bool:

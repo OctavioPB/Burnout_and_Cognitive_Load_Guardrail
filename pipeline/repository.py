@@ -8,7 +8,8 @@ rather than inserting a duplicate.  This is the primary idempotency guarantee.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+from typing import Any
 
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
@@ -20,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 async def upsert_team_daily_features(
     engine: AsyncEngine,
-    records: list[dict],
+    records: list[dict[str, Any]],
 ) -> int:
     """Upsert a batch of feature dicts into features.team_daily.
 
@@ -36,7 +37,7 @@ async def upsert_team_daily_features(
         return 0
 
     # Stamp computed_at if caller didn't supply it
-    now = datetime.now(tz=timezone.utc)
+    now = datetime.now(tz=UTC)
     for rec in records:
         rec.setdefault("computed_at", now)
 
@@ -59,5 +60,6 @@ async def upsert_team_daily_features(
         )
         result = await session.execute(stmt)
         await session.commit()
-        logger.info("upserted %d feature rows", result.rowcount)
-        return result.rowcount
+        rowcount: int = getattr(result, "rowcount", 0) or 0
+        logger.info("upserted %d feature rows", rowcount)
+        return rowcount

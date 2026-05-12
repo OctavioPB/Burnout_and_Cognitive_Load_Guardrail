@@ -9,14 +9,17 @@ GET  /interventions/{team_id}/efficacy/{intervention_id} — before/after AFS vi
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 
+from api.dependencies import require_authenticated, require_team_access
 from api.schemas.interventions import (
     ApplyInterventionRequest,
     DismissInterventionRequest,
     EfficacyPoint,
     EfficacyView,
+    IntegrationResult,
     InterventionRecord,
 )
 from api.services.integrations.calendar_adapter import create_meeting_free_friday
@@ -24,7 +27,6 @@ from api.services.integrations.jira_adapter import create_load_redistribution_ep
 from api.services.integrations.slack_adapter import post_async_first_week_notice
 from api.services.intervention_store import audit_store, intervention_store
 from api.services.mock_data import store as data_store
-from api.dependencies import require_authenticated, require_team_access
 
 logger = logging.getLogger(__name__)
 
@@ -48,19 +50,27 @@ async def _dispatch(
     actor_name: str,
     customization: str | None,
     applied_at: str,
-):
-    from api.schemas.interventions import IntegrationResult
-
+) -> IntegrationResult:
     match intervention_id:
         case "meeting_free_friday":
             return await create_meeting_free_friday(team_id, team_name, actor_email)
         case "load_redistribution":
-            return await create_load_redistribution_epic(team_id, team_name, actor_email, applied_at)
+            return await create_load_redistribution_epic(
+                team_id, team_name, actor_email, applied_at
+            )
         case "async_first_week":
-            message = customization or f"Starting this week, {team_name} will follow an async-first communication protocol."
-            return await post_async_first_week_notice(team_id, team_name, message, actor_name)
+            message = customization or (
+                f"Starting this week, {team_name} will follow an async-first protocol."
+            )
+            return await post_async_first_week_notice(
+                team_id, team_name, message, actor_name
+            )
         case _:
-            return IntegrationResult(integration="none", status="skipped", detail="No external integration for this intervention.")
+            return IntegrationResult(
+                integration="none",
+                status="skipped",
+                detail="No external integration for this intervention.",
+            )
 
 
 # ── Routes ────────────────────────────────────────────────────────────────────
@@ -70,7 +80,7 @@ async def apply_intervention(
     team_id: str,
     body: ApplyInterventionRequest,
     request: Request,
-    actor: dict = Depends(require_authenticated),
+    actor: dict[str, Any] = Depends(require_authenticated),
 ) -> InterventionRecord:
     """Accept an intervention and trigger its external integration."""
     require_team_access(actor, team_id)
@@ -122,7 +132,7 @@ def dismiss_intervention(
     team_id: str,
     body: DismissInterventionRequest,
     request: Request,
-    actor: dict = Depends(require_authenticated),
+    actor: dict[str, Any] = Depends(require_authenticated),
 ) -> InterventionRecord:
     """Dismiss an intervention without executing any integration."""
     require_team_access(actor, team_id)
@@ -148,7 +158,7 @@ def dismiss_intervention(
 @router.get("/{team_id}", response_model=list[InterventionRecord])
 def get_team_interventions(
     team_id: str,
-    actor: dict = Depends(require_authenticated),
+    actor: dict[str, Any] = Depends(require_authenticated),
 ) -> list[InterventionRecord]:
     """List all intervention records for a team."""
     require_team_access(actor, team_id)
@@ -159,7 +169,7 @@ def get_team_interventions(
 def get_efficacy(
     team_id: str,
     intervention_id: str,
-    actor: dict = Depends(require_authenticated),
+    actor: dict[str, Any] = Depends(require_authenticated),
 ) -> EfficacyView:
     """Return the before/after AFS trend for an applied intervention."""
     require_team_access(actor, team_id)
@@ -183,16 +193,26 @@ def get_efficacy(
 
     for pt in history:
         if pt.date < applied_date:
-            before_points.append(EfficacyPoint(date=pt.date, afs=pt.afs, zone=pt.zone, phase="before"))
+            before_points.append(
+                EfficacyPoint(date=pt.date, afs=pt.afs, zone=pt.zone, phase="before")
+            )
         elif pt.date >= applied_date:
-            after_points.append(EfficacyPoint(date=pt.date, afs=pt.afs, zone=pt.zone, phase="after"))
+            after_points.append(
+                EfficacyPoint(date=pt.date, afs=pt.afs, zone=pt.zone, phase="after")
+            )
 
     # Use last 13 days before + up to 14 days after
     before_window = before_points[-13:] if len(before_points) >= 13 else before_points
     after_window  = after_points[:14]
 
-    before_avg = round(sum(p.afs for p in before_window) / len(before_window), 1) if before_window else 0.0
-    after_avg  = round(sum(p.afs for p in after_window)  / len(after_window),  1) if after_window  else 0.0
+    before_avg = (
+        round(sum(p.afs for p in before_window) / len(before_window), 1)
+        if before_window else 0.0
+    )
+    after_avg = (
+        round(sum(p.afs for p in after_window) / len(after_window), 1)
+        if after_window else 0.0
+    )
 
     return EfficacyView(
         team_id=team_id,

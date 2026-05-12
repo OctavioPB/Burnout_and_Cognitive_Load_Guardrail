@@ -14,7 +14,6 @@ from __future__ import annotations
 import io
 import json
 import logging
-import os
 import struct
 import uuid
 from pathlib import Path
@@ -71,7 +70,7 @@ class KafkaBatchConsumeOperator:
         magic, _ = struct.unpack(">bI", raw[:_SR_HEADER_SIZE])
         if magic != _MAGIC_BYTE:
             raise ValueError(f"Unexpected magic byte: {magic}")
-        return fastavro.schemaless_reader(io.BytesIO(raw[_SR_HEADER_SIZE:]), schema)
+        return fastavro.schemaless_reader(io.BytesIO(raw[_SR_HEADER_SIZE:]), schema)  # type: ignore[no-any-return]
 
     def _matches_date(self, record: dict[str, Any]) -> bool:
         for field in ("date_utc", "hour_bucket_utc"):
@@ -91,8 +90,11 @@ class KafkaBatchConsumeOperator:
             List of JSON-serialisable dicts (Avro records matching date_filter).
         """
         try:
-            from confluent_kafka import Consumer, TopicPartition  # type: ignore[import-untyped]
-            from confluent_kafka import OFFSET_BEGINNING  # type: ignore[import-untyped]
+            from confluent_kafka import (
+                OFFSET_BEGINNING,
+                Consumer,
+                TopicPartition,
+            )
         except ImportError as exc:
             raise RuntimeError("confluent_kafka is required for KafkaBatchConsumeOperator") from exc
 
@@ -131,7 +133,10 @@ class KafkaBatchConsumeOperator:
                     continue
                 empty_polls = 0
                 try:
-                    record = self._deserialize(msg.value(), schema)
+                    raw_value: bytes | None = msg.value()
+                    if raw_value is None:
+                        continue
+                    record = self._deserialize(raw_value, schema)
                     if self._matches_date(record):
                         records.append(record)
                 except Exception:

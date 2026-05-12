@@ -11,10 +11,12 @@ In production these headers would be validated against a signed JWT instead.
 
 from __future__ import annotations
 
+from typing import Any
+
 from fastapi import Depends, HTTPException, Request
 
 
-def _actor_from_request(request: Request) -> dict:
+def _actor_from_request(request: Request) -> dict[str, Any]:
     """Extract actor identity from request headers."""
     user_id   = request.headers.get("X-User-Id",   "anonymous")
     user_name = request.headers.get("X-User-Name",  "Anonymous User")
@@ -28,7 +30,7 @@ def _actor_from_request(request: Request) -> dict:
     }
 
 
-def require_authenticated(request: Request) -> dict:
+def require_authenticated(request: Request) -> dict[str, Any]:
     """Require any authenticated user (non-anonymous)."""
     actor = _actor_from_request(request)
     if actor["id"] == "anonymous":
@@ -36,7 +38,7 @@ def require_authenticated(request: Request) -> dict:
     return actor
 
 
-def require_hr_admin(actor: dict = Depends(require_authenticated)) -> dict:
+def require_hr_admin(actor: dict[str, Any] = Depends(require_authenticated)) -> dict[str, Any]:
     """Require the HR Admin role."""
     if actor["role"] != "hr_admin":
         raise HTTPException(
@@ -46,7 +48,7 @@ def require_hr_admin(actor: dict = Depends(require_authenticated)) -> dict:
     return actor
 
 
-def require_team_access(actor: dict, team_id: str) -> None:
+def require_team_access(actor: dict[str, Any], team_id: str) -> None:
     """Enforce that a team_manager can only access their own team.
 
     HR Admins and Viewers can access all teams.

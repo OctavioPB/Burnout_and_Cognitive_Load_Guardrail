@@ -11,8 +11,8 @@ import io
 import json
 import logging
 import struct
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from dataclasses import dataclass
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -52,7 +52,9 @@ class KafkaProducerService:
     Async-friendly Kafka producer wrapping confluent_kafka.Producer.
 
     Usage:
-        producer = KafkaProducerService(bootstrap_servers=..., schema_registry_url=..., schemas_dir=...)
+        producer = KafkaProducerService(
+            bootstrap_servers=..., schema_registry_url=..., schemas_dir=...
+        )
         producer.load_schema("raw.slack.activity", "slack_activity.avsc")
         producer.register_schema("raw.slack.activity")   # optional; falls back to id=1 in dev
         await producer.produce_event("raw.slack.activity", event)
@@ -166,7 +168,7 @@ class KafkaProducerService:
     ) -> bytes:
         buf = io.BytesIO()
         buf.write(struct.pack(">bI", _MAGIC_BYTE, schema_id))  # 5-byte SR header
-        fastavro.schemaless_writer(buf, schema, data)  # type: ignore[arg-type]
+        fastavro.schemaless_writer(buf, schema, data)
         return buf.getvalue()
 
     @retry(
@@ -221,7 +223,7 @@ class KafkaProducerService:
                 "event_id": event_id,
                 "error": error,
                 "payload_hex": payload.hex(),
-                "failed_at": datetime.now(tz=timezone.utc).isoformat(),
+                "failed_at": datetime.now(tz=UTC).isoformat(),
             }
         ).encode()
         try:

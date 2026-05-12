@@ -8,7 +8,6 @@ from pipeline.transforms.after_hours_index import (
 )
 from tests.unit.pipeline.conftest import make_slack
 
-
 # ── Edge cases ────────────────────────────────────────────────────────────────
 
 

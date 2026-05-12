@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from ml.training.dataset import DatasetSplit, add_afs_and_zone, temporal_split
+from ml.training.dataset import add_afs_and_zone, temporal_split
 from ml.training.features import AFS_COL, RAW_FEATURE_COLS, ZONE_COL
 from ml.training.synthetic import SyntheticDataGenerator
 
@@ -21,7 +21,7 @@ def synthetic_df() -> pd.DataFrame:
 
 def test_add_afs_and_zone_appends_columns() -> None:
     df = SyntheticDataGenerator(seed=0).generate_dataframe(n_teams=5, n_days=5)
-    raw = df[RAW_FEATURE_COLS + ["team_id", "date_utc"]].copy()
+    raw = df[[*RAW_FEATURE_COLS, "team_id", "date_utc"]].copy()
     enriched = add_afs_and_zone(raw)
     assert AFS_COL in enriched.columns
     assert ZONE_COL in enriched.columns
@@ -45,13 +45,13 @@ def test_too_few_dates_raises() -> None:
 
 def test_invalid_ratio_raises() -> None:
     df = SyntheticDataGenerator(seed=0).generate_dataframe(n_teams=5, n_days=10)
-    with pytest.raises(ValueError, match="must be < 1.0"):
+    with pytest.raises(ValueError, match=r"must be < 1\.0"):
         temporal_split(df, train_ratio=0.7, val_ratio=0.4)
 
 
 def test_zero_ratio_raises() -> None:
     df = SyntheticDataGenerator(seed=0).generate_dataframe(n_teams=5, n_days=10)
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="train_ratio"):
         temporal_split(df, train_ratio=0.0, val_ratio=0.15)
 
 
@@ -69,7 +69,6 @@ def test_split_no_date_overlap(synthetic_df: pd.DataFrame) -> None:
     split = temporal_split(synthetic_df)
 
     dates = sorted(synthetic_df["date_utc"].unique())
-    n = len(dates)
     # Infer partitions from boundary dates
     train_end_idx = dates.index(split.train_end_date)
     val_end_idx = dates.index(split.val_end_date)

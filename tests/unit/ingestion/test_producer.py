@@ -5,15 +5,15 @@ from __future__ import annotations
 import io
 import json
 import struct
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from unittest.mock import MagicMock, call, patch
+from unittest.mock import MagicMock
 
 import fastavro
 import pytest
 
 from ingestion.models import SlackActivityEvent
-from ingestion.producer import KafkaProducerService, _DLQ_PREFIX, _MAGIC_BYTE
+from ingestion.producer import _DLQ_PREFIX, _MAGIC_BYTE, KafkaProducerService
 
 _SCHEMAS_DIR = Path(__file__).parents[3] / "ingestion" / "schemas"
 _TOPIC = "raw.slack.activity"
@@ -36,7 +36,7 @@ def _make_event() -> SlackActivityEvent:
         workspace_id="W001",
         team_id="T001",
         channel_id="C001",
-        hour_bucket_utc=datetime(2024, 1, 15, 14, 0, tzinfo=timezone.utc),
+        hour_bucket_utc=datetime(2024, 1, 15, 14, 0, tzinfo=UTC),
         message_count=5,
         is_after_hours=False,
         day_of_week=0,
@@ -70,7 +70,7 @@ async def test_producer_payload_uses_schema_registry_wire_format(
 
     payload: bytes = mock_producer.produce.call_args[1].get("value") or mock_producer.produce.call_args[0][1]
     # Verify Confluent wire format: byte 0 = magic, bytes 1-4 = schema_id
-    magic, schema_id = struct.unpack(">bI", payload[:5])
+    magic, _ = struct.unpack(">bI", payload[:5])
     assert magic == _MAGIC_BYTE
 
 
@@ -169,7 +169,7 @@ async def test_producer_dlq_envelope_is_valid_json(
 
 def test_producer_load_schema_parses_correctly(mock_producer: MagicMock) -> None:
     svc = _make_service(mock_producer)
-    assert _TOPIC in svc._parsed_schemas  # noqa: SLF001
+    assert _TOPIC in svc._parsed_schemas
 
 
 def test_producer_load_schema_raises_on_missing_file(mock_producer: MagicMock) -> None:

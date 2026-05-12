@@ -15,7 +15,7 @@ In production, restrict access via network policy (scraper pod only).
 from __future__ import annotations
 
 import time
-from typing import Callable
+from collections.abc import Awaitable, Callable
 
 from fastapi import Request, Response
 from fastapi.responses import PlainTextResponse
@@ -99,7 +99,9 @@ class PrometheusMiddleware(BaseHTTPMiddleware):
     def __init__(self, app: ASGIApp) -> None:
         super().__init__(app)
 
-    async def dispatch(self, request: Request, call_next: Callable) -> Response:  # type: ignore[override]
+    async def dispatch(
+        self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
+    ) -> Response:
         if not _PROMETHEUS_AVAILABLE:
             return await call_next(request)
 

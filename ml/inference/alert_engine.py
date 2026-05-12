@@ -19,7 +19,7 @@ Design notes
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from ml.inference.interventions import Intervention, suggest_interventions
 

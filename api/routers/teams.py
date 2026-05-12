@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from fastapi import APIRouter, Depends, HTTPException, Request
 
 from api.dependencies import require_authenticated, require_team_access
@@ -15,7 +17,7 @@ router = APIRouter(prefix="/teams", tags=["teams"])
 def get_team_history(
     team_id: str,
     request: Request,
-    actor: dict = Depends(require_authenticated),
+    actor: dict[str, Any] = Depends(require_authenticated),
 ) -> TeamHistory:
     """Return 30-day AFS history and current features for a team.
 

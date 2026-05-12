@@ -20,10 +20,11 @@ from __future__ import annotations
 
 import logging
 import os
+from collections.abc import Awaitable, Callable
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 
 from api.middleware.logging import CorrelationLoggingMiddleware, configure_structlog
 from api.middleware.metrics import PrometheusMiddleware, metrics_endpoint
@@ -65,7 +66,9 @@ app.add_middleware(
 
 
 @app.middleware("http")
-async def audit_middleware(request: Request, call_next):  # type: ignore[no-untyped-def]
+async def audit_middleware(
+    request: Request, call_next: Callable[[Request], Awaitable[Response]]
+) -> Response:
     """Record read events for data privacy compliance.
 
     Only GET requests from authenticated actors are written to the audit log.
@@ -91,7 +94,11 @@ async def audit_middleware(request: Request, call_next):  # type: ignore[no-unty
                     break
 
             if action:
-                resource = path.split("/")[2] if path.startswith("/teams/") else path.lstrip("/").split("/")[0]
+                resource = (
+                    path.split("/")[2]
+                    if path.startswith("/teams/")
+                    else path.lstrip("/").split("/")[0]
+                )
                 audit_store.record(
                     actor_id=actor_id,
                     actor_name=actor_name,
@@ -109,12 +116,12 @@ async def audit_middleware(request: Request, call_next):  # type: ignore[no-unty
 
 
 @app.get("/health", tags=["ops"])
-def health() -> dict:
+def health() -> dict[str, str]:
     return {"status": "ok", "version": app.version}
 
 
 @app.get("/metrics", tags=["ops"], include_in_schema=False)
-def get_metrics():  # type: ignore[no-untyped-def]
+def get_metrics() -> Response:
     """Prometheus metrics scrape endpoint (cluster-internal only)."""
     return metrics_endpoint()
 

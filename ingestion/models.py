@@ -8,13 +8,13 @@ metadata (timestamps, counts, durations) is represented.
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from pydantic import BaseModel, Field
 
 
 def _now_utc() -> datetime:
-    return datetime.now(tz=timezone.utc)
+    return datetime.now(tz=UTC)
 
 
 class BaseEvent(BaseModel):
@@ -49,7 +49,7 @@ class CalendarActivityEvent(BaseEvent):
     meeting_count: int
     total_meeting_minutes: int
     back_to_back_count: int         # adjacent meetings with < 5-minute gap
-    after_hours_meeting_minutes: int  # minutes of meetings outside 09:00–18:00
+    after_hours_meeting_minutes: int  # minutes of meetings outside 09:00-18:00
 
 
 class JiraSprintEvent(BaseEvent):
@@ -80,5 +80,5 @@ class GitHubActivityEvent(BaseEvent):
     pr_count_merged: int
     avg_pr_cycle_time_hours: float  # mean of (merged_at - created_at) for merged PRs
     avg_review_turnaround_hours: float  # mean time from PR open to first review
-    commit_count_after_hours: int   # commits with author_date outside 09:00–18:00 UTC
+    commit_count_after_hours: int   # commits with author_date outside 09:00-18:00 UTC
     total_commit_count: int

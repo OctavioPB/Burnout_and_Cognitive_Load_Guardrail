@@ -50,7 +50,7 @@ class InferenceUser(HttpUser):
     - 10% health checks: monitoring/alerting systems
     """
 
-    wait_time = between(0.01, 0.05)  # 10–50ms between requests → ~50 RPS per user
+    wait_time = between(0.01, 0.05)  # 10-50ms between requests, ~50 RPS per user
 
     @task(7)
     def predict_cold_start(self) -> None:

@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from fastapi import APIRouter, Depends, Query
 
+from api.dependencies import require_hr_admin
 from api.schemas.interventions import AuditLogEntry
 from api.services.intervention_store import audit_store
-from api.dependencies import require_hr_admin
 
 router = APIRouter(prefix="/audit", tags=["audit"])
 
@@ -14,7 +16,7 @@ router = APIRouter(prefix="/audit", tags=["audit"])
 @router.get("", response_model=list[AuditLogEntry])
 def get_audit_log(
     limit: int = Query(default=100, ge=1, le=500),
-    _actor: dict = Depends(require_hr_admin),
+    _actor: dict[str, Any] = Depends(require_hr_admin),
 ) -> list[AuditLogEntry]:
     """Return audit log entries, most recent first.  HR Admin role required."""
     return audit_store.entries(limit=limit)

@@ -59,7 +59,7 @@ def batch_scoring_dag() -> None:
         """
         hook = PostgresHook(postgres_conn_id=_POSTGRES_CONN_ID)
         rows = hook.get_records(
-            """
+            f"""
             SELECT
                 team_id,
                 workspace_id,
@@ -68,11 +68,11 @@ def batch_scoring_dag() -> None:
                 after_hours_activity_index,
                 context_switch_count,
                 sprint_health_index
-            FROM {table}
+            FROM {_FEATURES_TABLE}
             WHERE date_utc = %(ds)s
             ORDER BY team_id
             LIMIT %(limit)s
-            """.format(table=_FEATURES_TABLE),
+            """,
             parameters={"ds": ds, "limit": _MAX_TEAMS_PER_RUN},
         )
         logger.info("Fetched %d team records for %s", len(rows), ds)
@@ -81,7 +81,7 @@ def batch_scoring_dag() -> None:
             "calendar_density_score", "after_hours_activity_index",
             "context_switch_count", "sprint_health_index",
         ]
-        return [dict(zip(cols, row)) for row in rows]
+        return [dict(zip(cols, row, strict=False)) for row in rows]
 
     @task()
     def score_teams(records: list[dict]) -> list[dict]:
@@ -130,7 +130,7 @@ def batch_scoring_dag() -> None:
                         "model_version": pred.model_version,
                     }
                 )
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.error("Scoring failed for team %s: %s", rec.get("team_id"), exc)
 
         logger.info("Scored %d / %d teams", len(results), len(records))
@@ -151,8 +151,8 @@ def batch_scoring_dag() -> None:
         conn = hook.get_conn()
         cursor = conn.cursor()
 
-        upsert_sql = """
-            INSERT INTO {table} (
+        upsert_sql = f"""
+            INSERT INTO {_PREDICTIONS_TABLE} (
                 team_id, workspace_id, date_utc,
                 afs, resilience_zone, zone_label,
                 probabilities, cold_start, model_version
@@ -169,7 +169,7 @@ def batch_scoring_dag() -> None:
                 probabilities = EXCLUDED.probabilities,
                 cold_start = EXCLUDED.cold_start,
                 model_version = EXCLUDED.model_version
-        """.format(table=_PREDICTIONS_TABLE)
+        """
 
         cursor.executemany(upsert_sql, predictions)
         conn.commit()

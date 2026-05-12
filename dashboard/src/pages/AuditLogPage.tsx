@@ -38,7 +38,7 @@ function AuditRow({ entry }: { entry: AuditLogEntry }) {
   const ts = format(parseISO(entry.timestamp), 'MMM d, yyyy HH:mm');
   const color = ACTION_COLOR[entry.action] ?? 'var(--mid)';
   return (
-    <tr>
+    <>
       <td style={tdStyle}>{ts}</td>
       <td style={tdStyle}>
         <div style={{ fontWeight: 600 }}>{entry.actor_name}</div>
@@ -49,7 +49,7 @@ function AuditRow({ entry }: { entry: AuditLogEntry }) {
       </td>
       <td style={{ ...tdStyle, fontFamily: 'Courier New, monospace', fontSize: 12 }}>{entry.resource}</td>
       <td style={{ ...tdStyle, color: 'var(--mid)', fontSize: 11 }}>{entry.detail || '—'}</td>
-    </tr>
+    </>
   );
 }
 

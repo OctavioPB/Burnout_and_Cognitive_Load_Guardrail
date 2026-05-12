@@ -8,9 +8,7 @@ Tests verify that:
 
 import pytest
 from fastapi import HTTPException
-from starlette.testclient import TestClient
 from starlette.requests import Request
-
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 

@@ -7,7 +7,6 @@ import pytest
 from ml.inference.alert_engine import Alert, AlertEngine
 from ml.inference.interventions import Intervention
 
-
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 
 
@@ -46,12 +45,12 @@ def _yellow(engine: AlertEngine, team: str = "T-1", day: str = "2024-01-01") -> 
 
 
 def test_threshold_zero_raises() -> None:
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="threshold"):
         AlertEngine(threshold=0)
 
 
 def test_threshold_negative_raises() -> None:
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="threshold"):
         AlertEngine(threshold=-1)
 
 

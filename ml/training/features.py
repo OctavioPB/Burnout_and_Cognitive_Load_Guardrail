@@ -10,6 +10,7 @@ All downstream code (training, inference, evaluation) imports from here.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Final
@@ -31,7 +32,7 @@ AFS_COL: Final[str] = "afs"
 ZONE_COL: Final[str] = "resilience_zone"
 
 #: Full feature + label column set expected in a training DataFrame.
-ALL_COLS: Final[list[str]] = RAW_FEATURE_COLS + [AFS_COL, ZONE_COL]
+ALL_COLS: Final[list[str]] = [*RAW_FEATURE_COLS, AFS_COL, ZONE_COL]
 
 # Expected ranges for validation (inclusive)
 FEATURE_RANGES: Final[dict[str, tuple[float, float]]] = {
@@ -60,9 +61,9 @@ assert abs(sum(AFS_WEIGHTS.values()) - 1.0) < 1e-9, "AFS weights must sum to 1.0
 
 
 class ResilienceZone(str, Enum):
-    GREEN = "green"    # AFS  0–39  — Healthy
-    YELLOW = "yellow"  # AFS 40–69  — Monitor
-    RED = "red"        # AFS 70–100 — Intervene
+    GREEN = "green"    # AFS  0-39  - Healthy
+    YELLOW = "yellow"  # AFS 40-69  - Monitor
+    RED = "red"        # AFS 70-100 - Intervene
 
     @property
     def label(self) -> int:
@@ -117,7 +118,7 @@ def compute_afs(
     return float(np.clip(raw * 100.0, 0.0, 100.0))
 
 
-def compute_afs_from_row(row: dict[str, float | None]) -> float:
+def compute_afs_from_row(row: Mapping[str, float | None]) -> float:
     """Convenience wrapper: compute AFS from a feature dict (e.g. a DataFrame row)."""
     return compute_afs(
         context_switch_count=float(row.get("context_switch_count") or 0.0),

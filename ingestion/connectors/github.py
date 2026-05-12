@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import httpx
@@ -231,7 +231,7 @@ class GitHubConnector(BaseConnector[GitHubActivityEvent]):
             created = pr["created_at"]
             if not isinstance(created, datetime):
                 continue
-            date_key = created.astimezone(timezone.utc).strftime("%Y-%m-%d")
+            date_key = created.astimezone(UTC).strftime("%Y-%m-%d")
             d = by_date.setdefault(
                 date_key,
                 {
@@ -243,16 +243,16 @@ class GitHubConnector(BaseConnector[GitHubActivityEvent]):
                     "total_commits": 0,
                 },
             )
-            d["opened"] = int(d["opened"]) + 1  # type: ignore[arg-type]
+            d["opened"] = int(d["opened"]) + 1  # type: ignore[call-overload]
             merged = pr.get("merged_at")
             if isinstance(merged, datetime):
-                d["merged"] = int(d["merged"]) + 1  # type: ignore[arg-type]
+                d["merged"] = int(d["merged"]) + 1  # type: ignore[call-overload]
                 cycle = (merged - created).total_seconds() / 3600
                 cast_list: list[float] = d["cycle_hours"]  # type: ignore[assignment]
                 cast_list.append(cycle)
 
         for ts in commits:
-            date_key = ts.astimezone(timezone.utc).strftime("%Y-%m-%d")
+            date_key = ts.astimezone(UTC).strftime("%Y-%m-%d")
             d = by_date.setdefault(
                 date_key,
                 {
@@ -264,9 +264,9 @@ class GitHubConnector(BaseConnector[GitHubActivityEvent]):
                     "total_commits": 0,
                 },
             )
-            d["total_commits"] = int(d["total_commits"]) + 1  # type: ignore[arg-type]
+            d["total_commits"] = int(d["total_commits"]) + 1  # type: ignore[call-overload]
             if self._is_after_hours(ts):
-                d["after_commits"] = int(d["after_commits"]) + 1  # type: ignore[arg-type]
+                d["after_commits"] = int(d["after_commits"]) + 1  # type: ignore[call-overload]
 
         events: list[GitHubActivityEvent] = []
         for date_str, data in sorted(by_date.items()):
@@ -278,21 +278,21 @@ class GitHubConnector(BaseConnector[GitHubActivityEvent]):
                     team_id=team_id,
                     date_utc=date_str,
                     repo_id=repo_id,
-                    pr_count_opened=int(data["opened"]),  # type: ignore[arg-type]
-                    pr_count_merged=int(data["merged"]),  # type: ignore[arg-type]
+                    pr_count_opened=int(data["opened"]),  # type: ignore[call-overload]
+                    pr_count_merged=int(data["merged"]),  # type: ignore[call-overload]
                     avg_pr_cycle_time_hours=(
                         sum(cycle_list) / len(cycle_list) if cycle_list else -1.0
                     ),
                     avg_review_turnaround_hours=(
                         sum(review_list) / len(review_list) if review_list else -1.0
                     ),
-                    commit_count_after_hours=int(data["after_commits"]),  # type: ignore[arg-type]
-                    total_commit_count=int(data["total_commits"]),  # type: ignore[arg-type]
+                    commit_count_after_hours=int(data["after_commits"]),  # type: ignore[call-overload]
+                    total_commit_count=int(data["total_commits"]),  # type: ignore[call-overload]
                 )
             )
         return events
 
     @staticmethod
     def _is_after_hours(ts: datetime) -> bool:
-        hour = ts.astimezone(timezone.utc).hour
+        hour = ts.astimezone(UTC).hour
         return hour < _WORK_HOURS_START or hour >= _WORK_HOURS_END

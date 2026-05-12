@@ -21,6 +21,7 @@ import { DashboardHome } from './pages/DashboardHome';
 import { TeamDrillDown } from './pages/TeamDrillDown';
 import { AlertsPage } from './pages/AlertsPage';
 import { AuditLogPage } from './pages/AuditLogPage';
+import { InfoPage } from './pages/InfoPage';
 
 /** Redirects unauthenticated visitors to /login. */
 function RequireAuth({ children }: { children: React.ReactNode }) {
@@ -82,6 +83,14 @@ export default function App() {
           element={
             <RequireAuth>
               <Shell><AuditLogPage /></Shell>
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/info"
+          element={
+            <RequireAuth>
+              <Shell><InfoPage /></Shell>
             </RequireAuth>
           }
         />

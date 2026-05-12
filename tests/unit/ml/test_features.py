@@ -13,7 +13,6 @@ from ml.training.features import (
     compute_afs_from_row,
 )
 
-
 # ── ResilienceZone ─────────────────────────────────────────────────────────────
 
 

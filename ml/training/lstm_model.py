@@ -89,7 +89,7 @@ class BurnoutLSTM(nn.Module):
             Logits of shape (batch, num_classes).
         """
         _, (h_n, _) = self.lstm(x)
-        return self.head(h_n[-1])  # last layer's hidden state
+        return self.head(h_n[-1])  # type: ignore[no-any-return]  # last layer's hidden state
 
 
 @dataclass
@@ -246,7 +246,7 @@ class LSTMTrainer:
         Returns:
             Int32 array of shape (n_samples,).
         """
-        return self.predict_proba(X).argmax(axis=1).astype(np.int32)
+        return self.predict_proba(X).argmax(axis=1).astype(np.int32)  # type: ignore[no-any-return]
 
     # ── Serialization ─────────────────────────────────────────────────────────
 
@@ -273,7 +273,7 @@ class LSTMTrainer:
         logger.info("LSTM saved to %s", path)
 
     @classmethod
-    def load(cls, path: Path) -> "LSTMTrainer":
+    def load(cls, path: Path) -> LSTMTrainer:
         """Load a trainer with a pre-trained LSTM ready for inference.
 
         Args:

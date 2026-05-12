@@ -83,7 +83,7 @@ def load_models(model_dir: Path = MODEL_DIR) -> ModelBundle:
         try:
             bundle.if_model = BurnoutIsolationForest.load(if_path)
             logger.info("IsolationForest loaded from %s", if_path)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("Failed to load IsolationForest: %s", exc)
     else:
         logger.warning("IsolationForest artifact not found at %s — cold-start mode active", if_path)
@@ -94,7 +94,7 @@ def load_models(model_dir: Path = MODEL_DIR) -> ModelBundle:
         try:
             bundle.lstm_trainer = LSTMTrainer.load(lstm_path)
             logger.info("LSTM loaded from %s", lstm_path)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("Failed to load LSTM: %s", exc)
     else:
         logger.warning("LSTM artifact not found at %s — cold-start mode active", lstm_path)
@@ -110,7 +110,7 @@ def load_models(model_dir: Path = MODEL_DIR) -> ModelBundle:
         try:
             bundle.fingerprint = load_fingerprint(fp_path)
             logger.info("Feature fingerprint loaded from %s", fp_path)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("Failed to load fingerprint: %s", exc)
 
     loaded = [k for k, v in bundle.status().items() if v]

@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import os
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 try:
@@ -26,18 +26,18 @@ except ImportError as _exc:  # pragma: no cover
         "Install with: pip install 'burnout-guardrail[pipeline]'"
     ) from _exc
 
-from pipeline.operators.kafka_consume_operator import KafkaBatchConsumeOperator
-from pipeline.transforms.after_hours_index import compute_after_hours_activity_index
-from pipeline.transforms.calendar_density import compute_calendar_density_score
-from pipeline.transforms.context_switch import compute_context_switch_count
-from pipeline.transforms.sprint_health import compute_sprint_health_index
-from pipeline.quality.checks import validate_team_daily_batch
 from ingestion.models import (
     CalendarActivityEvent,
     GitHubActivityEvent,
     JiraSprintEvent,
     SlackActivityEvent,
 )
+from pipeline.operators.kafka_consume_operator import KafkaBatchConsumeOperator
+from pipeline.quality.checks import validate_team_daily_batch
+from pipeline.transforms.after_hours_index import compute_after_hours_activity_index
+from pipeline.transforms.calendar_density import compute_calendar_density_score
+from pipeline.transforms.context_switch import compute_context_switch_count
+from pipeline.transforms.sprint_health import compute_sprint_health_index
 
 _BOOTSTRAP = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
 _DATABASE_URL = os.getenv(
@@ -62,7 +62,7 @@ def _get_team_size(workspace_id: str, team_id: str) -> int:
     dag_id="dag_raw_to_features",
     description="ETL: Kafka raw events → features.team_daily (hourly, idempotent)",
     schedule="@hourly",
-    start_date=datetime(2024, 1, 1, tzinfo=timezone.utc),
+    start_date=datetime(2024, 1, 1, tzinfo=UTC),
     catchup=True,
     max_active_runs=4,
     tags=["burnout", "etl", "features"],

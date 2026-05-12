@@ -8,7 +8,6 @@ from pipeline.transforms.context_switch import (
 )
 from tests.unit.pipeline.conftest import make_calendar, make_github
 
-
 # ── Edge cases ────────────────────────────────────────────────────────────────
 
 

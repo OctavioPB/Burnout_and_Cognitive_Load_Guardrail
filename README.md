@@ -102,11 +102,15 @@ The defaults in `.env.example` work for local development without any external s
 docker compose up -d
 ```
 
-This starts Kafka, Zookeeper, Schema Registry, Postgres, and Redis. Wait ~30 seconds for all health checks to pass:
+This starts Kafka, Zookeeper, Schema Registry, Postgres, and Redis. **Docker Compose runs infrastructure only — the Python API and React dashboard are started separately in steps 4 and 5.**
+
+Wait ~60 seconds for all health checks to pass:
 
 ```bash
 docker compose ps   # all services should show "healthy"
 ```
+
+> **Windows note:** Port 9101 (Kafka JMX) is not exposed on the host to avoid conflicts with Docker's internal port reservations. JMX remains active inside the container if needed by a monitoring sidecar.
 
 ### 3. Install Python dependencies
 
@@ -116,11 +120,25 @@ pip install -e ".[dev]"
 
 ### 4. Start the backend API
 
+Open a dedicated terminal and run:
+
 ```bash
 uvicorn api.main:app --reload --port 8000
 ```
 
-Verify: `curl http://localhost:8000/health` → `{"status": "ok", "version": "0.2.0"}`
+Keep this terminal open — the server runs in the foreground. Verify it is up in a second terminal:
+
+```bash
+# bash / macOS / Linux
+curl http://localhost:8000/health
+
+# PowerShell (Windows) — curl is an alias for Invoke-WebRequest and behaves differently
+Invoke-RestMethod http://localhost:8000/health
+```
+
+Expected response: `{"status": "ok", "version": "0.2.0"}`
+
+Interactive API docs are available at **http://localhost:8000/docs**.
 
 ### 5. Start the dashboard
 
@@ -404,15 +422,99 @@ Full details in [docs/legal/dpa-template.md](docs/legal/dpa-template.md) and [do
 
 ---
 
+## Code quality
+
+All quality gates pass on `main`. Run them before opening a PR:
+
+```bash
+# Python — lint (0 errors)
+ruff check .
+
+# Python — types (0 errors across 74 source files)
+mypy api/ ml/ ingestion/ pipeline/
+
+# Python — tests (≥80% coverage required, currently ~89%)
+pytest tests/unit/
+
+# TypeScript — types (0 errors)
+cd dashboard && npm run type-check
+```
+
+**mypy configuration notes** (see `pyproject.toml`):
+- `ignore_missing_imports = true` is set for `fastavro`, `confluent_kafka`, `joblib`, `sklearn`, and `respx` — none of these ship typed stubs.
+- `ignore_errors = true` is set for `airflow.*` and `pipeline.dags.*` / `pipeline.operators.*` — Airflow has no public stubs and cannot be typed without vendoring the entire Airflow package.
+- ML files (`ml/**`) suppress `N803`/`N806` (uppercase `X`, `X_train`, etc.) — standard numpy/sklearn convention.
+
+---
+
+## Troubleshooting
+
+### Kafka is unhealthy — `UnknownHostException: zookeeper`
+
+**Symptom:** `docker compose up -d` exits with `container kafka is unhealthy`. Kafka logs show `java.net.UnknownHostException: zookeeper`.
+
+**Cause:** When Docker Desktop restarts between sessions and you run `docker compose up -d`, Docker restarts existing containers instead of recreating them. Docker's embedded DNS loses its hostname registrations during the restart, so Kafka can't resolve the `zookeeper` hostname even though the Zookeeper container is running and shows as healthy (its healthcheck tests `localhost:2181` inside its own container, not cross-container DNS).
+
+**Fix:** Always use a full down + up after a Docker Desktop restart:
+
+```bash
+docker compose down
+docker compose up -d
+```
+
+`docker compose down` removes containers and the network, then `up -d` recreates everything fresh with proper DNS registration. Never use `docker compose up -d` alone after Docker Desktop has been restarted — it will restart stale containers that may be missing from the network.
+
+---
+
+### `docker compose up -d` fails with "port 9101 not available"
+
+Docker's internal backend process (`com.docker.backend`) sometimes holds port 9101 across container restarts on Windows. The Kafka JMX port is intentionally **not** exposed on the host (see `docker-compose.yml`) — it remains active inside the container network only. If you see this error after upgrading Docker Desktop, a full Docker Desktop restart (not just container restart) clears the reservation.
+
+### `curl http://localhost:8000/health` — "Unable to connect"
+
+`docker compose up -d` starts **infrastructure only** (Kafka, Postgres, Redis, Schema Registry). The FastAPI backend is a separate process — start it with:
+
+```bash
+uvicorn api.main:app --reload --port 8000
+```
+
+### `curl` in PowerShell returns a credential prompt or `ParameterBindingException`
+
+In PowerShell, `curl` is an alias for `Invoke-WebRequest`, not `curl.exe`. Use `Invoke-RestMethod` instead for clean JSON output:
+
+```powershell
+Invoke-RestMethod http://localhost:8000/health
+```
+
+Or call `curl.exe` explicitly:
+
+```powershell
+curl.exe http://localhost:8000/health
+```
+
+### `mypy` reports errors in `ingestion/` or `pipeline/`
+
+Run mypy against **all four** directories — `api/ ml/` alone misses the Kafka and Airflow layers:
+
+```bash
+mypy api/ ml/ ingestion/ pipeline/
+```
+
+### `npm run type-check` vs `npx tsc --noEmit`
+
+They are equivalent. `npm run type-check` is the canonical project alias defined in `dashboard/package.json` and should be preferred in CI to pick up any future compiler flag changes automatically.
+
+---
+
 ## Contributing
 
 ```bash
-# Before committing
-ruff check . --fix       # lint + auto-fix
-ruff format .            # format
-mypy api/ ml/            # type check
-pytest tests/unit/       # tests + coverage
-cd dashboard && npx tsc --noEmit   # frontend types
+# Before committing — all must exit with 0 errors
+ruff check . --fix                        # lint + auto-fix
+ruff format .                             # format
+mypy api/ ml/ ingestion/ pipeline/        # type check (all layers)
+pytest tests/unit/                        # tests + coverage
+cd dashboard && npm run type-check        # frontend types
 ```
 
 Code style is enforced by `ruff` (replaces black + flake8). Type hints are mandatory on all public functions. See [CLAUDE.md](CLAUDE.md) for full coding conventions.

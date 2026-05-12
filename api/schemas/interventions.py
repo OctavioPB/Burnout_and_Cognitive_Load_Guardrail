@@ -6,7 +6,6 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-
 # ── Intervention actions ──────────────────────────────────────────────────────
 
 InterventionAction = Literal["accepted", "dismissed", "customized"]

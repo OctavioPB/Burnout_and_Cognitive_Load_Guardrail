@@ -27,8 +27,6 @@ import numpy as np
 from ml.training.features import (
     RAW_FEATURE_COLS,
     ResilienceZone,
-    afs_to_zone,
-    compute_afs,
 )
 
 logger = logging.getLogger(__name__)
@@ -126,7 +124,7 @@ class RuleBasedBaseline:
 
         results = np.empty(X.shape[0], dtype=np.int32)
         for i, row in enumerate(X):
-            feat = dict(zip(RAW_FEATURE_COLS, row.tolist()))
+            feat = dict(zip(RAW_FEATURE_COLS, row.tolist(), strict=False))
             results[i] = self.predict_one(feat).label
         return results
 

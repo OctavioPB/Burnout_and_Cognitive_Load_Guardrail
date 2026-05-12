@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from ingestion.models import (
     CalendarActivityEvent,
@@ -25,7 +25,7 @@ def make_slack(
         workspace_id=_WORKSPACE,
         team_id=_TEAM,
         channel_id="C001",
-        hour_bucket_utc=datetime(2024, 1, 15, 10, 0, tzinfo=timezone.utc),
+        hour_bucket_utc=datetime(2024, 1, 15, 10, 0, tzinfo=UTC),
         message_count=message_count,
         is_after_hours=is_after_hours,
         day_of_week=day_of_week,

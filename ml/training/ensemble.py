@@ -69,7 +69,7 @@ def _afs_soft_proba(afs_scores: np.ndarray) -> np.ndarray:
 
     raw = np.stack([p_green, p_yellow, p_red], axis=1).astype(np.float64)
     row_sums = raw.sum(axis=1, keepdims=True)
-    return (raw / row_sums).astype(np.float32)
+    return (raw / row_sums).astype(np.float32)  # type: ignore[no-any-return]
 
 
 class EnsembleScorer:
@@ -119,7 +119,7 @@ class EnsembleScorer:
         # Compute AFS from last-timestep features
         afs_scores = np.array(
             [
-                compute_afs_from_row(dict(zip(RAW_FEATURE_COLS, row.tolist())))
+                compute_afs_from_row(dict(zip(RAW_FEATURE_COLS, row.tolist(), strict=False)))
                 for row in X_last
             ],
             dtype=np.float32,
@@ -145,4 +145,4 @@ class EnsembleScorer:
         Returns:
             Int32 array of shape (n,).
         """
-        return self.predict_proba(X_seq).argmax(axis=1).astype(np.int32)
+        return self.predict_proba(X_seq).argmax(axis=1).astype(np.int32)  # type: ignore[no-any-return]

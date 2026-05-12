@@ -62,7 +62,7 @@ class HRAdminUser(HttpUser):
     """HR Admin — full read/write access.  Models the most privileged user type."""
 
     wait_time = between(0.5, 2.0)
-    weight = 3  # 3× more HR admins than viewers in the mix
+    weight = 3  # 3x more HR admins than viewers in the mix
 
     def on_start(self) -> None:
         self._team_ids = _get_team_ids(self.client)

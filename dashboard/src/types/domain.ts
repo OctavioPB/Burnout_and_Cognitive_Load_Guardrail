@@ -75,6 +75,25 @@ export interface AlertRecord {
   interventions: InterventionItem[];
 }
 
+// ── Org history (trend + sparklines) ─────────────────────────────────────────
+
+export interface OrgTrendPoint {
+  date: string;
+  afs: number;
+}
+
+export interface TeamTrendSeries {
+  name: string;
+  department: string;
+  history: OrgTrendPoint[];
+}
+
+export interface OrgHistory {
+  org: OrgTrendPoint[];
+  by_department: Record<string, OrgTrendPoint[]>;
+  by_team: Record<string, TeamTrendSeries>;
+}
+
 // ── Auth ──────────────────────────────────────────────────────────────────────
 
 export type UserRole = 'hr_admin' | 'team_manager' | 'viewer';

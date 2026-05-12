@@ -8,7 +8,6 @@ from pipeline.transforms.sprint_health import (
 )
 from tests.unit.pipeline.conftest import make_github, make_jira
 
-
 # ── Edge cases ────────────────────────────────────────────────────────────────
 
 

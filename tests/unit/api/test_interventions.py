@@ -5,16 +5,15 @@ import pytest
 from api.schemas.interventions import IntegrationResult
 from api.services.intervention_store import AuditStore, InterventionStore
 
-
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 
-@pytest.fixture()
+@pytest.fixture
 def store() -> InterventionStore:
     """Fresh store per test — isolates state."""
     return InterventionStore()
 
 
-@pytest.fixture()
+@pytest.fixture
 def audit() -> AuditStore:
     return AuditStore()
 

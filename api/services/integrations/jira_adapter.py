@@ -71,7 +71,9 @@ async def create_load_redistribution_epic(
     user_email  = os.getenv("JIRA_USER_EMAIL", actor_email)
 
     try:
-        issue_key = await _create_epic(base_url, token, user_email, project_key, team_name, applied_at)
+        issue_key = await _create_epic(
+            base_url, token, user_email, project_key, team_name, applied_at
+        )
         logger.info("Jira epic created: %s for team %s", issue_key, team_id)
         return IntegrationResult(
             integration="jira",
@@ -79,7 +81,7 @@ async def create_load_redistribution_epic(
             external_id=issue_key,
             detail=f"Epic {issue_key} created with load redistribution checklist.",
         )
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.error("Jira error for team %s: %s", team_id, exc)
         return IntegrationResult(
             integration="jira",
@@ -104,7 +106,10 @@ async def _create_epic(
                 "type": "doc", "version": 1,
                 "content": [
                     {"type": "paragraph", "content": [
-                        {"type": "text", "text": f"Triggered by Burnout Guardrail on {applied_at[:10]}.\n\n{_CHECKLIST_TEMPLATE}"}
+                        {"type": "text", "text": (
+                            f"Triggered by Burnout Guardrail on {applied_at[:10]}."
+                            f"\n\n{_CHECKLIST_TEMPLATE}"
+                        )}
                     ]}
                 ],
             },

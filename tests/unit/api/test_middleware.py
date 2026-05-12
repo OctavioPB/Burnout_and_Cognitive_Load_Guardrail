@@ -8,7 +8,6 @@ Tests are kept focused on observable behaviour:
 
 from __future__ import annotations
 
-import pytest
 from fastapi.testclient import TestClient
 
 from api.main import app

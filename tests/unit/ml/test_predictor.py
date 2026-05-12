@@ -5,11 +5,9 @@ from __future__ import annotations
 from unittest.mock import MagicMock
 
 import numpy as np
-import pytest
 
 from ml.inference.model_loader import ModelBundle
 from ml.inference.predictor import BurnoutPredictor, PredictionResult
-
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 

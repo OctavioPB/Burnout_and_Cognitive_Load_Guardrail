@@ -64,7 +64,7 @@ def compute_feature_fingerprint(
             "std": float(np.std(col)),
             "min": float(np.min(col)),
             "max": float(np.max(col)),
-            "percentiles": {str(p): float(v) for p, v in zip(_PERCENTILES, pcts)},
+            "percentiles": {str(p): float(v) for p, v in zip(_PERCENTILES, pcts, strict=False)},
         }
 
     return {
@@ -95,7 +95,7 @@ def load_fingerprint(path: Path) -> dict[str, Any]:
     Returns:
         Fingerprint dict.
     """
-    return json.loads(path.read_text())  # type: ignore[return-value]
+    return json.loads(path.read_text())  # type: ignore[no-any-return]
 
 
 def check_drift(

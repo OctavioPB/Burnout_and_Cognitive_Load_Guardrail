@@ -12,7 +12,6 @@ from ml.training.lstm_model import LSTMTrainer
 from ml.training.sequence_dataset import build_sequences, split_sequence_dataset
 from ml.training.synthetic import SyntheticDataGenerator
 
-
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 
 
@@ -82,7 +81,7 @@ def test_invalid_weights_raise() -> None:
     if_model = BurnoutIsolationForest()
     if_model.fit(split.X_train)
     lstm = LSTMTrainer(device="cpu")
-    with pytest.raises(ValueError, match="sum to 1.0"):
+    with pytest.raises(ValueError, match=r"sum to 1\.0"):
         EnsembleScorer(if_model, lstm, if_weight=0.5, lstm_weight=0.5, afs_weight=0.5)
 
 

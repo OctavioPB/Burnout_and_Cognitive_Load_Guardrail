@@ -17,8 +17,8 @@ from __future__ import annotations
 
 import time
 import uuid
+from collections.abc import Awaitable, Callable
 from contextvars import ContextVar
-from typing import Callable
 
 import structlog
 from fastapi import Request, Response
@@ -67,7 +67,9 @@ class CorrelationLoggingMiddleware(BaseHTTPMiddleware):
         super().__init__(app)
         self._logger = structlog.get_logger()
 
-    async def dispatch(self, request: Request, call_next: Callable) -> Response:  # type: ignore[override]
+    async def dispatch(
+        self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
+    ) -> Response:
         request_id = request.headers.get("X-Request-Id") or str(uuid.uuid4())
         _request_id_ctx.set(request_id)
 

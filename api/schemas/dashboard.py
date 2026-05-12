@@ -76,3 +76,20 @@ class AlertRecord(BaseModel):
     trigger_date: str
     consecutive_red_days: int
     interventions: list[InterventionItem]
+
+
+class OrgTrendPoint(BaseModel):
+    date: str
+    afs: float
+
+
+class TeamTrendSeries(BaseModel):
+    name: str
+    department: str
+    history: list[OrgTrendPoint]
+
+
+class OrgHistory(BaseModel):
+    org: list[OrgTrendPoint]
+    by_department: dict[str, list[OrgTrendPoint]]
+    by_team: dict[str, TeamTrendSeries]

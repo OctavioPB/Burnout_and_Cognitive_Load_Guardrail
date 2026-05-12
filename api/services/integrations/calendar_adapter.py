@@ -63,7 +63,7 @@ async def create_meeting_free_friday(
             external_id=event_id,
             detail=f"Recurring Meeting-Free Friday block created (event {event_id}).",
         )
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.error("Google Calendar error for team %s: %s", team_id, exc)
         return IntegrationResult(
             integration="google_calendar",

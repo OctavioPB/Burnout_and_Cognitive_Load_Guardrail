@@ -7,10 +7,9 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from ml.training.features import RAW_FEATURE_COLS
+from ml.training.dataset import temporal_split
 from ml.training.isolation_forest import BurnoutIsolationForest
 from ml.training.synthetic import SyntheticDataGenerator
-from ml.training.dataset import temporal_split
 
 
 @pytest.fixture(scope="module")

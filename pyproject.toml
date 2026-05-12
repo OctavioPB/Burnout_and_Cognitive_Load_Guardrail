@@ -60,13 +60,40 @@ line-length = 100
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "UP", "ANN", "B", "C4", "PT", "RUF"]
 ignore = [
-    "ANN101",  # self annotation
-    "ANN102",  # cls annotation
     "ANN401",  # Any annotation — handled with per-case justification
+    "B008",    # Depends() in defaults is the idiomatic FastAPI pattern
+    "UP042",   # str+Enum is intentional for label access without .value
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["ANN", "S101"]
+"tests/**" = [
+    "ANN",    # no annotations required in tests
+    "S101",   # assert is fine in tests
+    "N802",   # uppercase fixture names (X_train, X_test) follow ML convention
+    "N803",   # uppercase argument names (X_train, X_test) follow ML convention
+    "N806",   # uppercase variables (X, X_train) follow ML convention
+    "RUF003", # × and – in math comments are intentional
+    "E501",   # long test signatures with typed parameters
+]
+"ml/**" = [
+    "N803",   # X, X_train, X_new follow scikit-learn/numpy convention
+    "N806",   # X, X_seq, X_curr follow scikit-learn/numpy convention
+    "RUF002", # math symbols (×, −) are intentional in ML docstrings
+    "RUF003", # math symbols in comments are intentional
+]
+"pipeline/**" = [
+    "RUF002", # math symbols in transform docstrings are intentional
+]
+"**/*.ipynb" = [
+    "E402",   # imports below cell-level code is normal in notebooks
+    "RUF001", # math symbols (×, σ) are intentional in notebook prose
+    "RUF002", # math symbols in docstrings are intentional
+    "RUF003", # math symbols in comments are intentional
+    "E501",   # long lines acceptable in notebook output cells
+    "B905",   # zip(strict=) optional in exploratory notebook code
+    "C408",   # dict() literals vs constructors — style choice in notebooks
+    "RUF005", # list concatenation style is fine in notebooks
+]
 
 [tool.ruff.format]
 quote-style = "double"
@@ -79,8 +106,18 @@ ignore_missing_imports = false
 plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
-module = ["fastavro.*", "confluent_kafka.*"]
+module = ["fastavro.*", "confluent_kafka.*", "joblib.*", "sklearn.*", "respx.*"]
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+# Airflow lacks py.typed; DAG files also use untyped @dag/@task decorators.
+module = ["airflow.*", "pipeline.dags.*"]
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+# Airflow operator base classes are untyped; suppress all errors in custom operators.
+module = ["pipeline.operators.*"]
+ignore_errors = true
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

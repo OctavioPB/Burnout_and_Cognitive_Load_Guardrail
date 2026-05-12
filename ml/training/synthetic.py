@@ -19,13 +19,9 @@ import numpy as np
 import pandas as pd
 
 from ml.training.features import (
-    AFS_COL,
     RAW_FEATURE_COLS,
-    ZONE_COL,
     ResilienceZone,
     TeamDayFeatureRecord,
-    afs_to_zone,
-    compute_afs,
 )
 
 # ── Per-zone distribution parameters ─────────────────────────────────────────

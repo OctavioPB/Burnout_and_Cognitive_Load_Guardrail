@@ -4,19 +4,17 @@ from __future__ import annotations
 
 from datetime import date
 
-import numpy as np
 import pandas as pd
 import pytest
 
 from ml.training.features import AFS_COL, RAW_FEATURE_COLS, ZONE_COL, ResilienceZone
 from ml.training.synthetic import SyntheticDataGenerator
 
-
 # ── Constructor validation ────────────────────────────────────────────────────
 
 
 def test_invalid_zone_weights_raise() -> None:
-    with pytest.raises(ValueError, match="sum to 1.0"):
+    with pytest.raises(ValueError, match=r"sum to 1\.0"):
         SyntheticDataGenerator(
             zone_weights={
                 ResilienceZone.GREEN: 0.5,
@@ -44,7 +42,8 @@ def test_different_seeds_produce_different_data() -> None:
 # ── Output shape and schema ───────────────────────────────────────────────────
 
 
-def test_dataframe_shape(n_teams: int = 10, n_days: int = 30) -> None:
+def test_dataframe_shape() -> None:
+    n_teams, n_days = 10, 30
     df = SyntheticDataGenerator().generate_dataframe(n_teams=n_teams, n_days=n_days)
     assert df.shape == (n_teams * n_days, 9)
 

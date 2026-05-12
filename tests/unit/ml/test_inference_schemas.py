@@ -7,14 +7,11 @@ from pydantic import ValidationError
 
 from ml.inference.schemas import (
     BatchPredictRequest,
-    BatchPredictResponse,
     DayFeatures,
     HealthResponse,
-    Intervention,
     PredictRequest,
     PredictResponse,
 )
-
 
 # ── DayFeatures ───────────────────────────────────────────────────────────────
 

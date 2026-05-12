@@ -15,7 +15,7 @@ import json
 import os
 import struct
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import fastavro
@@ -38,7 +38,7 @@ pytestmark = pytest.mark.skipif(
 )
 
 
-@pytest.fixture()
+@pytest.fixture
 def producer() -> KafkaProducerService:
     svc = KafkaProducerService(
         bootstrap_servers=_BOOTSTRAP,
@@ -50,7 +50,7 @@ def producer() -> KafkaProducerService:
     return svc
 
 
-@pytest.fixture()
+@pytest.fixture
 def consumer():  # type: ignore[no-untyped-def]
     try:
         from confluent_kafka import Consumer  # type: ignore[import-untyped]
@@ -79,7 +79,7 @@ async def test_slack_event_kafka_roundtrip(
         workspace_id="W_INTEGRATION",
         team_id="T_INTEGRATION",
         channel_id="C_INTEGRATION",
-        hour_bucket_utc=datetime(2024, 1, 15, 14, 0, tzinfo=timezone.utc),
+        hour_bucket_utc=datetime(2024, 1, 15, 14, 0, tzinfo=UTC),
         message_count=42,
         is_after_hours=False,
         day_of_week=0,

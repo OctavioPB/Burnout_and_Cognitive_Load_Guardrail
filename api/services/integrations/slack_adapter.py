@@ -83,7 +83,7 @@ async def post_async_first_week_notice(
             external_id=ts,
             detail=f"Message posted and pinned in channel {channel}.",
         )
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.error("Slack error for team %s: %s", team_id, exc)
         return IntegrationResult(
             integration="slack",
@@ -103,11 +103,16 @@ async def _post_and_pin(
         "blocks": [
             {
                 "type": "section",
-                "text": {"type": "mrkdwn", "text": f"*📋 Async-First Week — {team_name}*\n\n{hr_message}"},
+                "text": {
+                    "type": "mrkdwn",
+                    "text": f"*Async-First Week - {team_name}*\n\n{hr_message}",
+                },
             },
             {
                 "type": "context",
-                "elements": [{"type": "mrkdwn", "text": f"Posted by {actor_name} via Burnout Guardrail"}],
+                "elements": [
+                    {"type": "mrkdwn", "text": f"Posted by {actor_name} via Burnout Guardrail"}
+                ],
             },
         ],
     }

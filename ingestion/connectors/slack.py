@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import httpx
@@ -143,7 +143,7 @@ class SlackConnector(BaseConnector[SlackActivityEvent]):
                 ts_str = msg.get("ts", "")
                 if ts_str:
                     timestamps.append(
-                        datetime.fromtimestamp(float(ts_str), tz=timezone.utc)
+                        datetime.fromtimestamp(float(ts_str), tz=UTC)
                     )
 
             cursor = (data.get("response_metadata") or {}).get("next_cursor") or None
@@ -154,5 +154,5 @@ class SlackConnector(BaseConnector[SlackActivityEvent]):
 
     @staticmethod
     def _is_after_hours(ts: datetime) -> bool:
-        hour = ts.astimezone(timezone.utc).hour
+        hour = ts.astimezone(UTC).hour
         return hour < _WORK_HOURS_START or hour >= _WORK_HOURS_END

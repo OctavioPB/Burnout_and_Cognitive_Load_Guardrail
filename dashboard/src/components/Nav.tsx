@@ -19,6 +19,7 @@ const NAV_LINKS: NavLink[] = [
   { path: '/dashboard', label: 'Dashboard' },
   { path: '/alerts',    label: 'Alert Feed' },
   { path: '/audit',     label: 'Audit Log',  roles: ['hr_admin'] },
+  { path: '/info',      label: 'About' },
 ];
 
 export function Nav() {

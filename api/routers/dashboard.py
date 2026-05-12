@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Query
 
-from api.schemas.dashboard import DashboardSummary, TeamCard
+from api.schemas.dashboard import DashboardSummary, OrgHistory, TeamCard
 from api.services.mock_data import store
 
 router = APIRouter(prefix="/dashboard", tags=["dashboard"])
@@ -22,3 +22,9 @@ def get_teams(
 ) -> list[TeamCard]:
     """Return all team cards, sorted by AFS descending (highest risk first)."""
     return store.teams(department=department)
+
+
+@router.get("/org-history", response_model=OrgHistory)
+def get_org_history() -> OrgHistory:
+    """Return 30-day AFS series at org, department, and team granularity."""
+    return store.org_history()

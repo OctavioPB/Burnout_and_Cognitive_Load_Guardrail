@@ -9,6 +9,7 @@ import { apiClient } from '../lib/apiClient';
 import type {
   AlertRecord,
   DashboardSummary,
+  OrgHistory,
   TeamCard,
   TeamHistory,
 } from '../types/domain';
@@ -59,6 +60,14 @@ export function useTeamHistory(teamId: string) {
     queryFn:  () => apiClient.get<TeamHistory>(`/teams/${teamId}/history`).then(r => r.data),
     staleTime: 60_000,
     enabled:  Boolean(teamId),
+  });
+}
+
+export function useOrgHistory() {
+  return useQuery<OrgHistory>({
+    queryKey: ['dashboard', 'org-history'],
+    queryFn:  () => apiClient.get<OrgHistory>('/dashboard/org-history').then(r => r.data),
+    staleTime: 60_000,
   });
 }
 

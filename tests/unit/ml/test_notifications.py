@@ -15,7 +15,6 @@ from ml.inference.notifications import (
     _build_slack_payload,
 )
 
-
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 
 

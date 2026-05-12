@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import httpx
 import pytest
@@ -34,9 +34,9 @@ async def test_slack_fetch_events_returns_typed_events(
 ) -> None:
     # 2 messages in channel C001: one at 14:00, one at 14:30 (same bucket)
     # 1 message in channel C002: at 22:00 (after hours)
-    ts_14h = str(datetime(2024, 1, 15, 14, 0, tzinfo=timezone.utc).timestamp())
-    ts_14h30 = str(datetime(2024, 1, 15, 14, 30, tzinfo=timezone.utc).timestamp())
-    ts_22h = str(datetime(2024, 1, 15, 22, 5, tzinfo=timezone.utc).timestamp())
+    ts_14h = str(datetime(2024, 1, 15, 14, 0, tzinfo=UTC).timestamp())
+    ts_14h30 = str(datetime(2024, 1, 15, 14, 30, tzinfo=UTC).timestamp())
+    ts_22h = str(datetime(2024, 1, 15, 22, 5, tzinfo=UTC).timestamp())
 
     respx.get("https://slack.com/api/conversations.history", params__contains={"channel": "C001"}).mock(
         return_value=httpx.Response(
@@ -75,8 +75,8 @@ async def test_slack_fetch_events_returns_typed_events(
 async def test_slack_fetch_events_aggregates_messages_into_hour_buckets(
     async_http_client: httpx.AsyncClient,
 ) -> None:
-    ts_14h = str(datetime(2024, 1, 15, 14, 5, tzinfo=timezone.utc).timestamp())
-    ts_14h45 = str(datetime(2024, 1, 15, 14, 45, tzinfo=timezone.utc).timestamp())
+    ts_14h = str(datetime(2024, 1, 15, 14, 5, tzinfo=UTC).timestamp())
+    ts_14h45 = str(datetime(2024, 1, 15, 14, 45, tzinfo=UTC).timestamp())
 
     respx.get("https://slack.com/api/conversations.history", params__contains={"channel": "C001"}).mock(
         return_value=httpx.Response(
@@ -108,8 +108,8 @@ async def test_slack_fetch_events_aggregates_messages_into_hour_buckets(
 async def test_slack_fetch_events_flags_after_hours_correctly(
     async_http_client: httpx.AsyncClient,
 ) -> None:
-    ts_work = str(datetime(2024, 1, 15, 10, 0, tzinfo=timezone.utc).timestamp())
-    ts_after = str(datetime(2024, 1, 15, 21, 0, tzinfo=timezone.utc).timestamp())
+    ts_work = str(datetime(2024, 1, 15, 10, 0, tzinfo=UTC).timestamp())
+    ts_after = str(datetime(2024, 1, 15, 21, 0, tzinfo=UTC).timestamp())
 
     respx.get("https://slack.com/api/conversations.history", params__contains={"channel": "C001"}).mock(
         return_value=httpx.Response(
@@ -135,7 +135,7 @@ async def test_slack_fetch_events_flags_after_hours_correctly(
 async def test_slack_fetch_events_contains_no_message_content(
     async_http_client: httpx.AsyncClient,
 ) -> None:
-    ts = str(datetime(2024, 1, 15, 12, 0, tzinfo=timezone.utc).timestamp())
+    ts = str(datetime(2024, 1, 15, 12, 0, tzinfo=UTC).timestamp())
     respx.get("https://slack.com/api/conversations.history").mock(
         return_value=httpx.Response(
             200,
