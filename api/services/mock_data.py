@@ -45,6 +45,28 @@ _TEAMS: list[dict[str, str]] = [
 
 _WORKSPACE_ID = "W-main"
 
+# ── Seed configuration ────────────────────────────────────────────────────────
+
+class SeedConfig:
+    """Controls the team roster and stress distribution used by _DataStore."""
+
+    def __init__(
+        self,
+        teams: list[dict[str, str]] | None = None,
+        stress_profile: str = "mixed",
+        history_days: int = 30,
+    ) -> None:
+        self.teams = teams if teams is not None else list(_TEAMS)
+        self.stress_profile = stress_profile
+        self.history_days = history_days
+
+
+_STRESS_RANGE: dict[str, tuple[float, float]] = {
+    "low":   (0.05, 0.40),
+    "mixed": (0.00, 1.00),
+    "high":  (0.55, 0.95),
+}
+
 # ── Seeded RNG ────────────────────────────────────────────────────────────────
 
 def _rng(team_id: str) -> random.Random:
@@ -74,10 +96,13 @@ def _zone(afs: float) -> tuple[str, int]:
 
 # ── 30-day history builder ────────────────────────────────────────────────────
 
-def _build_history(team_id: str, days: int = 30) -> list[DayPoint]:
+def _build_history(
+    team_id: str,
+    days: int = 30,
+    base_range: tuple[float, float] = (0.0, 1.0),
+) -> list[DayPoint]:
     rng = _rng(team_id)
-    # Each team has a "base stress level" drawn from [0, 1]
-    base = rng.random()
+    base = rng.uniform(*base_range)
     today = date.today()
 
     points: list[DayPoint] = []
@@ -182,14 +207,17 @@ def _build_alerts(team_id: str, team_name: str, department: str,
 # ── Module-level data store (built once) ─────────────────────────────────────
 
 class _DataStore:
-    def __init__(self) -> None:
+    def __init__(self, config: SeedConfig | None = None) -> None:
+        cfg = config if config is not None else SeedConfig()
+        base_range = _STRESS_RANGE.get(cfg.stress_profile, (0.0, 1.0))
+
         self._histories: dict[str, list[DayPoint]] = {}
         self._team_cards: list[TeamCard] = []
         self._alerts: list[AlertRecord] = []
 
-        for t in _TEAMS:
+        for t in cfg.teams:
             tid, tname, dept = t["team_id"], t["team_name"], t["department"]
-            history = _build_history(tid)
+            history = _build_history(tid, days=cfg.history_days, base_range=base_range)
             self._histories[tid] = history
 
             last = history[-1]
@@ -314,4 +342,30 @@ class _DataStore:
         return result[:limit]
 
 
-store = _DataStore()
+class _StoreProxy:
+    """Thin proxy that lets callers hold a stable reference to `store` while
+    allowing the underlying _DataStore to be swapped out by the admin API."""
+
+    def __init__(self) -> None:
+        self._inner: _DataStore = _DataStore()
+
+    def reset(self, config: SeedConfig | None = None) -> None:
+        self._inner = _DataStore(config=config)
+
+    def summary(self) -> DashboardSummary:
+        return self._inner.summary()
+
+    def teams(self, department: str | None = None) -> list[TeamCard]:
+        return self._inner.teams(department=department)
+
+    def team_history(self, team_id: str) -> TeamHistory | None:
+        return self._inner.team_history(team_id)
+
+    def org_history(self) -> OrgHistory:
+        return self._inner.org_history()
+
+    def alerts(self, department: str | None = None, limit: int = 50) -> list[AlertRecord]:
+        return self._inner.alerts(department=department, limit=limit)
+
+
+store = _StoreProxy()

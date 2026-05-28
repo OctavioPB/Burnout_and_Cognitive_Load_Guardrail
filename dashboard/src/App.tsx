@@ -22,6 +22,7 @@ import { TeamDrillDown } from './pages/TeamDrillDown';
 import { AlertsPage } from './pages/AlertsPage';
 import { AuditLogPage } from './pages/AuditLogPage';
 import { InfoPage } from './pages/InfoPage';
+import { HrAdminPage } from './pages/HrAdminPage';
 
 /** Redirects unauthenticated visitors to /login. */
 function RequireAuth({ children }: { children: React.ReactNode }) {
@@ -91,6 +92,14 @@ export default function App() {
           element={
             <RequireAuth>
               <Shell><InfoPage /></Shell>
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <RequireAuth>
+              <Shell><HrAdminPage /></Shell>
             </RequireAuth>
           }
         />

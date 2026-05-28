@@ -19,6 +19,7 @@ const NAV_LINKS: NavLink[] = [
   { path: '/dashboard', label: 'Dashboard' },
   { path: '/alerts',    label: 'Alert Feed' },
   { path: '/audit',     label: 'Audit Log',  roles: ['hr_admin'] },
+  { path: '/admin',     label: 'HR Admin',   roles: ['hr_admin'] },
   { path: '/info',      label: 'About' },
 ];
 
@@ -96,21 +97,6 @@ export function Nav() {
           );
         })}
 
-        {user && (
-          <span
-            style={{
-              fontFamily: 'var(--fb)',
-              fontSize: 9,
-              letterSpacing: '2px',
-              textTransform: 'uppercase',
-              color: 'rgba(255,255,255,0.3)',
-              marginLeft: 12,
-              marginRight: 4,
-            }}
-          >
-            {ROLE_LABEL[user.role] ?? user.role}
-          </span>
-        )}
 
         <button
           onClick={handleLogout}

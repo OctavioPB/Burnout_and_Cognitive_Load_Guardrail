@@ -137,3 +137,40 @@ export function useAuditLog(limit = 100) {
     staleTime: 30_000,
   });
 }
+
+// ── Admin (HR Admin only) ─────────────────────────────────────────────────────
+
+export interface AdminTeamEntry {
+  team_id: string;
+  team_name: string;
+  department: string;
+}
+
+export interface AdminSeedRequest {
+  teams: AdminTeamEntry[];
+  stress_profile: 'low' | 'mixed' | 'high';
+  history_days: 7 | 14 | 30;
+}
+
+export interface AdminActionResponse {
+  message: string;
+  team_count: number;
+}
+
+export function useResetStore() {
+  const qc = useQueryClient();
+  return useMutation<AdminActionResponse, Error, void>({
+    mutationFn: () =>
+      apiClient.post<AdminActionResponse>('/admin/reset').then(r => r.data),
+    onSuccess: () => { void qc.invalidateQueries(); },
+  });
+}
+
+export function useSeedStore() {
+  const qc = useQueryClient();
+  return useMutation<AdminActionResponse, Error, AdminSeedRequest>({
+    mutationFn: body =>
+      apiClient.post<AdminActionResponse>('/admin/seed', body).then(r => r.data),
+    onSuccess: () => { void qc.invalidateQueries(); },
+  });
+}

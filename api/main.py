@@ -29,7 +29,7 @@ from fastapi.responses import JSONResponse, Response
 from api.middleware.logging import CorrelationLoggingMiddleware, configure_structlog
 from api.middleware.metrics import PrometheusMiddleware, metrics_endpoint
 from api.middleware.security import SecurityHeadersMiddleware
-from api.routers import alerts, audit, dashboard, interventions, teams
+from api.routers import admin, alerts, audit, dashboard, interventions, teams
 
 logger = logging.getLogger(__name__)
 configure_structlog()
@@ -137,3 +137,4 @@ app.include_router(teams.router)
 app.include_router(alerts.router)
 app.include_router(interventions.router)
 app.include_router(audit.router)
+app.include_router(admin.router)
